@@ -1,0 +1,25 @@
+{
+  "created_at": "2025-05-13T06:22:07.626389+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JV44XH8A59FF8F6SJYE4TQ2S",
+  "minor_version": 1,
+  "modified_at": "2025-06-04T06:44:28.222888+00:00",
+  "options": {
+    "device_class": "power",
+    "name": "Battery Discharging Power",
+    "state": "{% set dc = states('sensor.ac500_dc_input_power') | float(0) %}\n{% set ac_in = states('sensor.ac500_ac_input_power') | float(0) %}\n{% set ac_out = states('sensor.ac500_ac_output_power') | float(0) %}\n{% set discharging_raw = dc + ac_in - ac_out %}\n{% set efficiency = -1.0 %}\n{% set discharging = discharging_raw * efficiency %}\n{{ discharging if discharging_raw < 0 else 0 }}",
+    "state_class": "measurement",
+    "template_type": "sensor",
+    "unit_of_measurement": "W"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Battery Discharging Power",
+  "unique_id": null,
+  "version": 1
+}

@@ -1,0 +1,178 @@
+- id: '1721399007371'
+  alias: Solar Dump When Full
+  description: If Battery > 88%, and dining room > 75 deg F, and power differential
+    > 1000w, run the AC for 30 mins.
+  trigger:
+  - platform: numeric_state
+    entity_id:
+    - sensor.ac300_1_total_battery_percent_2
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+    above: 88
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.dining_room_current_temperature
+    above: 70
+  - condition: numeric_state
+    entity_id: sensor.ac300_1_total_battery_percent_2
+    above: 80
+    enabled: false
+  - condition: numeric_state
+    entity_id: sensor.power_differential_ac300_1
+    above: 1000
+  action:
+  - alias: Set up variables to make action events unique
+    variables:
+      action_yes: '{{ ''YES_'' ~ context.id }}'
+      action_no: '{{ ''NO_'' ~ context.id }}'
+  - alias: Send actionable notification
+    service: notify.mobile_app_phonetonia
+    data:
+      message: Battery Fully Charged, turn on AC?
+      data:
+        actions:
+        - action: '{{ action_yes }}'
+          title: 'Yes'
+        - action: '{{ action_no }}'
+          title: 'No'
+  - wait_for_trigger:
+    - platform: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ action_yes }}'
+    - platform: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ action_no }}'
+    continue_on_timeout: false
+  - alias: Do something in response to selecting an action
+    choose:
+    - alias: Yes action was selected
+      conditions:
+      - condition: template
+        value_template: '{{ wait.trigger.event.data.action == action_yes }}'
+      sequence:
+      - service: notify.mobile_app_phonetonia
+        data:
+          message: Turning on Furnace Intake AC
+      - service: climate.set_hvac_mode
+        metadata: {}
+        data:
+          hvac_mode: cool
+        target:
+          entity_id:
+          - climate.151732605274240_climate
+      - delay:
+          hours: 0
+          minutes: 30
+          seconds: 0
+          milliseconds: 0
+      - service: climate.set_hvac_mode
+        metadata: {}
+        data:
+          hvac_mode: 'off'
+        target:
+          entity_id: climate.151732605274240_climate
+    - alias: No action was selected
+      conditions:
+      - condition: template
+        value_template: '{{ wait.trigger.event.data.action == action_no }}'
+      sequence:
+      - service: notify.mobile_app_phonetonia
+        data:
+          message: The No action was selected
+        enabled: false
+  mode: restart
+- id: '1747198733919'
+  alias: Stop Charging at Target SOC
+  description: ''
+  triggers:
+  - entity_id: sensor.available_battery_kwh
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''sensor.available_battery_kwh'') | float(0) > (states(''input_number.target_soc_kwh'')
+      | float(0) + 0.1) }}
+
+      '
+  - condition: template
+    value_template: '{{ states(''select.ac300_ups_mode'') != ''PV_PRIORITY'' }}
+
+      '
+  actions:
+  - data:
+      option: PV_PRIORITY
+    target:
+      entity_id: select.ac300_ups_mode
+    action: select.select_option
+  - data:
+      title: AC300 Charging Complete
+      message: SOC has reached the target level. Switched to PV_Priority mode.
+    action: notify.mobile_app_phonetonia
+  mode: single
+- id: '1747329156554'
+  alias: Update All-Time Max DC Input Voltage - AC300
+  description: ''
+  triggers:
+  - entity_id: sensor.ac300_dc_input_voltage1
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: "{{ states('sensor.ac300_dc_input_voltage1') | float > \n   states('input_number.all_time_high_dc_input_voltage')\
+      \ | float }}\n"
+  actions:
+  - target:
+      entity_id:
+      - input_number.all_time_high_dc_input_voltage
+    data:
+      value: '{{ states(''sensor.ac300_dc_input_voltage1'') | float }}'
+    action: input_number.set_value
+  mode: single
+- id: '1748682156059'
+  alias: Update All Time High DC Input Voltage - AC500
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.ac500_dc_input_voltage1
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: "{{ states('sensor.ac500_dc_input_voltage1') | float > \n   states('input_number.all_time_high_dc_input_voltage_ac500')\
+      \ | float }}\n"
+  actions:
+  - target:
+      entity_id:
+      - input_number.all_time_high_dc_input_voltage_ac500
+    data:
+      value: '{{ states(''sensor.ac500_dc_input_voltage1'') | float }}'
+    action: input_number.set_value
+  mode: single
+- id: '1748729141590'
+  alias: Stop Charging at Target SOC AC500
+  description: ''
+  triggers:
+  - entity_id: sensor.available_battery_kwh
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''sensor.available_battery_kwh'') | float(0) > (states(''input_number.target_soc_kwh'')
+      | float(0) + 0.1) }}
+
+      '
+  - condition: template
+    value_template: '{{ states(''select.ac500_ups_mode'') != ''PV_PRIORITY'' }}
+
+      '
+  actions:
+  - data:
+      option: PV_PRIORITY
+    target:
+      entity_id: select.ac500_ups_mode
+    action: select.select_option
+  - data:
+      title: AC500 Charging Complete
+      message: SOC has reached the target level. Switched to PV_Priority mode.
+    action: notify.mobile_app_phonetonia
+  mode: single

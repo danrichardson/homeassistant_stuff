@@ -1,0 +1,137 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+group:
+  upstairs_rooms:
+    name: Upstairs Rooms
+    entities:
+      - sensor.willa_temperature_2
+      - sensor.zoe_temperature_2
+      - sensor.dan_temperature_2
+
+  downstairs_rooms:
+    name: Downstairs Rooms
+    entities:
+      - sensor.dining_room_temperature
+      
+template:
+  - sensor:
+      - name: "Daily Energy Cost"
+        unique_id: daily_energy_cost_template
+        unit_of_measurement: "$"
+        device_class: monetary
+        state_class: total
+        state: >
+          {% set off = states('sensor.daily_off_peak_energy_cost') | float(0) %}
+          {% set mid = states('sensor.daily_mid_peak_energy_cost') | float(0) %}
+          {% set peak = states('sensor.daily_peak_energy_cost') | float(0) %}
+          {{ (off + mid + peak) | round(2) }}
+          
+  - sensor:
+      - name: "Forecast High Temp"
+        unique_id: forecast_high_temp_sensor
+        unit_of_measurement: "°F"
+        state: >
+          {{ states('input_number.daily_forecast_high_temp') }}
+          
+  - binary_sensor:
+#      - name: "Upstairs Should Close Windows"
+#        unique_id: upstairs_should_close_windows
+#        state: >
+#          {% set outdoor = states('sensor.ambient_temp') | float %}
+#          {% set upstairs = expand('group.upstairs_rooms') | map(attribute='state') | map('float') | list %}
+#          {{ upstairs | select('lt', outdoor) | list | length > 0 }}
+#        delay_on:
+#          minutes: 2
+
+      - name: "Upstairs Should Close Windows"
+        unique_id: upstairs_should_close_windows
+        state: >
+            {% set rate = states('sensor.willa_temperature_rate') | float(0) %}
+            {{ rate > 0.02 }}  # Adjust threshold as needed (°F/hour or °/min depending on your unit_time)
+        delay_on:
+          minutes: 2
+        
+      - name: "Upstairs Should Open Windows"
+        unique_id: upstairs_should_open_windows
+        state: >
+          {% set outdoor = states('sensor.ambient_temp') | float %}
+          {% set upstairs = expand('group.upstairs_rooms') | map(attribute='state') | map('float') | list %}
+          {{ upstairs | select('gt', outdoor) | list | length > 0 }}
+        delay_on:
+          minutes: 2
+
+      - name: "Downstairs Should Close Windows"
+        unique_id: downstairs_should_close_windows
+        state: >
+          {% set outdoor = states('sensor.ambient_temp') | float %}
+          {% set downstairs = expand('group.downstairs_rooms') | map(attribute='state') | map('float') | list %}
+          {{ downstairs | select('lt', outdoor) | list | length > 0 }}
+        delay_on:
+          minutes: 2
+
+      - name: "Downstairs Should Open Windows"
+        unique_id: downstairs_should_open_windows
+        state: >
+          {% set outdoor = states('sensor.ambient_temp') | float %}
+          {% set downstairs = expand('group.downstairs_rooms') | map(attribute='state') | map('float') | list %}
+          {{ downstairs | select('gt', outdoor) | list | length > 0 }}
+        delay_on:
+          minutes: 2
+
+
+# template:
+#   - sensor:
+    #   - name: "Power Usage Peak"
+    #     unit_of_measurement: "W"
+    #     state: >
+    #       {% set now_time = now().time() %}
+    #       {% set weekday = now().weekday() %}
+    #       {% if weekday < 5 and now_time >= strptime('17:00', '%H:%M').time() and now_time < strptime('21:00', '%H:%M').time() %}
+    #         {{ states('sensor.vuetonia_123_1min') | round(1) }}
+    #       {% else %}
+    #         0
+    #       {% endif %}
+
+    #   - name: "Power Usage Mid-Peak"
+    #     unit_of_measurement: "W"
+    #     state: >
+    #       {% set now_time = now().time() %}
+    #       {% set weekday = now().weekday() %}
+    #       {% if weekday < 5 and now_time >= strptime('7:00', '%H:%M').time() and now_time < strptime('17:00', '%H:%M').time() %}
+    #         {{ states('sensor.vuetonia_123_1min') | round(1) }}
+    #       {% else %}
+    #         0
+    #       {% endif %}
+          
+    #   - name: "Power Usage Off-Peak"
+    #     unit_of_measurement: "W"
+    #     state: >
+    #       {% set hour = now().hour %}
+    #       {% set weekday = now().weekday() %}
+    #       {% if weekday >= 5 or hour < 7 or hour >= 21 %}
+    #         {{ states('sensor.vuetonia_123_1min') | round(1) }}
+    #       {% else %}
+    #         0
+    #       {% endif %}
+
+    #   - name: "Peak Energy Usage"
+    #     unit_of_measurement: "kWh"
+    #     state_class: total_increasing
+    #     device_class: energy
+    #     state: "{{ states('sensor.off_peak_power') }}"
+
+    #   - name: "Off-Peak Energy Usage"
+    #     unit_of_measurement: "kWh"
+    #     state_class: total_increasing
+    #     device_class: energy
+    #     state: "{{ states('sensor.peak_power') }}"

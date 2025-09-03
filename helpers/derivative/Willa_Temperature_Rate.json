@@ -1,0 +1,28 @@
+{
+  "created_at": "2025-07-18T16:21:31.091354+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "derivative",
+  "entry_id": "01K0F5EFTKHGEV7WHS5VH8QYBE",
+  "minor_version": 3,
+  "modified_at": "2025-08-08T04:22:04.645907+00:00",
+  "options": {
+    "name": "Willa Temperature Rate",
+    "round": 2.0,
+    "source": "sensor.willa_temperature_2",
+    "time_window": {
+      "hours": 0,
+      "minutes": 30,
+      "seconds": 0
+    },
+    "unit_time": "min"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Willa Temperature Rate",
+  "unique_id": null,
+  "version": 1
+}

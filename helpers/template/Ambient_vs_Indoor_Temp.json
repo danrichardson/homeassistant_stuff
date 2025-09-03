@@ -1,0 +1,25 @@
+{
+  "created_at": "1970-01-01T00:00:00+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01J3SJH5M2FNSFVNNCHK7Y6TQS",
+  "minor_version": 1,
+  "modified_at": "1970-01-01T00:00:00+00:00",
+  "options": {
+    "device_class": "temperature",
+    "name": "Ambient vs Indoor Temp",
+    "state": "{{ (states('sensor.ambient_temp') | float - states('sensor.dining_room_current_temperature') | float) }}",
+    "state_class": "measurement",
+    "template_type": "sensor",
+    "unit_of_measurement": "\u00c2\u00b0F"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Ambient vs Indoor Temp",
+  "unique_id": null,
+  "version": 1
+}

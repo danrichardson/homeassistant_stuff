@@ -1,0 +1,32 @@
+- id: '1747118266065'
+  alias: Set UPS Mode to STANDARD at 2:00 AM
+  description: ''
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ now().weekday() in [0, 1, 2, 3, 6] }}'
+  actions:
+  - data:
+      option: STANDARD
+    target:
+      entity_id: select.ac300_ups_mode
+    action: select.select_option
+  mode: single
+- id: '1747120298503'
+  alias: Set UPS Mode to PV_PRIORITY at 7:00 AM
+  description: ''
+  triggers:
+  - at: 07:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ now().weekday() in [0, 1, 2, 3, 6] }}'
+  actions:
+  - data:
+      option: PV_PRIORITY
+    target:
+      entity_id: select.ac300_ups_mode
+    action: select.select_option
+  mode: single

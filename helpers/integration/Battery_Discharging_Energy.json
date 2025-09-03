@@ -1,0 +1,25 @@
+{
+  "created_at": "2025-05-16T05:17:28.503943+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "integration",
+  "entry_id": "01JVBRDA1QF6YQW9QV23QD91W5",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:04.645291+00:00",
+  "options": {
+    "method": "left",
+    "name": "Battery Discharging Energy",
+    "round": 1.0,
+    "source": "sensor.battery_discharging_power",
+    "unit_prefix": "k",
+    "unit_time": "h"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Battery Discharging Energy",
+  "unique_id": null,
+  "version": 1
+}

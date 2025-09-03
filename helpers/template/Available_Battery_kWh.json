@@ -1,0 +1,25 @@
+{
+  "created_at": "2025-05-14T04:21:34.708226+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JV6GDGVMP80VJFH5Q4H6VJ1Q",
+  "minor_version": 1,
+  "modified_at": "2025-06-11T08:06:31.911592+00:00",
+  "options": {
+    "device_class": "energy",
+    "name": "Available Battery kWh",
+    "state": "{{ (states('sensor.ac500_total_battery_percent') | float / 100) * 21.1 | float }}",
+    "state_class": "total",
+    "template_type": "sensor",
+    "unit_of_measurement": "kWh"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Available Battery kWh",
+  "unique_id": null,
+  "version": 1
+}

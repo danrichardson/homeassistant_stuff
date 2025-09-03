@@ -1,0 +1,25 @@
+{
+  "created_at": "2025-05-11T22:56:09.025951+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JV0S06T16126J1WNS4F7E4KM",
+  "minor_version": 1,
+  "modified_at": "2025-05-11T22:56:09.025955+00:00",
+  "options": {
+    "device_class": "power",
+    "name": "Mid-Peak Power",
+    "state": "{% set now_time = now().time() %}\n{% set weekday = now().weekday() %}\n{% if weekday < 5 and now_time >= strptime('7:00', '%H:%M').time() and now_time < strptime('17:00', '%H:%M').time() %}\n  {{ states('sensor.vuetonia_123_1min') | round(1) }}\n{% else %}\n  0\n{% endif %}",
+    "state_class": "measurement",
+    "template_type": "sensor",
+    "unit_of_measurement": "W"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Mid-Peak Power",
+  "unique_id": null,
+  "version": 1
+}

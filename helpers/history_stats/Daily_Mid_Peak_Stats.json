@@ -1,0 +1,30 @@
+{
+  "created_at": "2025-05-29T10:12:37.514788+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "history_stats",
+  "entry_id": "01JWDRF30A9WYKMNKSCSNQC9C1",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:01.153499+00:00",
+  "options": {
+    "duration": {
+      "days": 0,
+      "hours": 24,
+      "minutes": 0,
+      "seconds": 0
+    },
+    "entity_id": "sensor.daily_mid_peak_energy_cost",
+    "name": "Daily Mid Peak Stats",
+    "start": "{{ now().replace(hour=0, minute=0, second=0, microsecond=0) }}",
+    "state": [],
+    "type": "time"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Daily Mid Peak Stats",
+  "unique_id": null,
+  "version": 1
+}

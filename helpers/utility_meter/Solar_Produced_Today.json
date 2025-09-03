@@ -1,0 +1,28 @@
+{
+  "created_at": "2025-06-27T23:37:13.028664+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "utility_meter",
+  "entry_id": "01JYSW16242N1E2E5DZHQ7SEET",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:02.108894+00:00",
+  "options": {
+    "always_available": false,
+    "cycle": "daily",
+    "delta_values": false,
+    "name": "Solar Produced Today",
+    "net_consumption": false,
+    "offset": 0.0,
+    "periodically_resetting": true,
+    "source": "sensor.ac500_power_generation",
+    "tariffs": []
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Solar Produced Today",
+  "unique_id": null,
+  "version": 2
+}

@@ -1,0 +1,86 @@
+- id: '1722066676567'
+  alias: Open Windows
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id:
+    - sensor.ambient_vs_indoor_temp
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    below: -1
+  condition: []
+  action:
+  - service: notify.mobile_app_phonetonia
+    metadata: {}
+    data:
+      title: Notification
+      message: Open the windows!
+  - service: notify.automation_freepdx_com
+    metadata: {}
+    data:
+      message: Open The Windows
+      title: Notification
+      target: 2152194322@vtext.com
+  mode: single
+- id: '1722066859673'
+  alias: Close Windows
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id:
+    - sensor.ambient_vs_indoor_temp
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    above: 1
+  condition: []
+  action:
+  - service: notify.mobile_app_phonetonia
+    metadata: {}
+    data:
+      title: Notification
+      message: Close the windows!
+  - service: notify.automation_freepdx_com
+    metadata: {}
+    data:
+      message: Close The Windows
+      title: Notification
+      target: 2152194322@vtext.com
+  mode: single
+- id: '1752816761304'
+  alias: Upstairs Window Notifications
+  description: ''
+  use_blueprint:
+    path: window_notification_by_floor.yaml
+    input:
+      close_sensor: binary_sensor.upstairs_should_close_windows
+      open_sensor: binary_sensor.upstairs_should_open_windows
+      notify_device: aea9d40bb10539ffe3160c852f70d775
+      floor_name: upstairs
+      input_boolean_close: input_boolean.upstairs_window_notified_close
+      input_boolean_open: input_boolean.upstairs_window_notified_open
+      forecast_sensor: sensor.forecast_high_temp
+      notify_entity: notify.dining_room
+      notify_service: notify.mobile_app_phonetonia
+- id: '1752856110539'
+  alias: Reset window alert sent flag
+  description: ''
+  triggers:
+  - at: 00:30:00
+    trigger: time
+  actions:
+  - target:
+      entity_id: input_boolean.upstairs_window_notified_open
+    action: input_boolean.turn_off
+  - target:
+      entity_id: input_boolean.upstairs_window_notified_close
+    action: input_boolean.turn_off
+  - target:
+      entity_id: input_boolean.downstairs_window_notified_open
+    action: input_boolean.turn_off
+  - target:
+      entity_id: input_boolean.downstairs_window_notified_close
+    action: input_boolean.turn_off

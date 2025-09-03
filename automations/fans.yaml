@@ -1,0 +1,33 @@
+- id: '1756503578245'
+  alias: Turn On Hallway Fan
+  description: ''
+  triggers:
+  - device_id: 31f7eddbfb74f06880995a568788e62d
+    domain: hubitat
+    type: double_tapped
+    subtype: '1'
+    metadata: {}
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 2cd748a6c395137f23f9cecb977e87b5
+    entity_id: 2a915398e990612d965294106da913c6
+    domain: switch
+  mode: single
+- id: '1756503610857'
+  alias: Turn Off Hallway Fan
+  description: ''
+  triggers:
+  - device_id: 31f7eddbfb74f06880995a568788e62d
+    domain: hubitat
+    type: double_tapped
+    subtype: '2'
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 2cd748a6c395137f23f9cecb977e87b5
+    entity_id: 2a915398e990612d965294106da913c6
+    domain: switch
+  mode: single

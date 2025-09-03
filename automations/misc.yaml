@@ -1,0 +1,48 @@
+- id: '1720664293249'
+  alias: Temp Equalization
+  description: Turns off AC if temps are equalized
+  trigger:
+  - platform: numeric_state
+    entity_id: weather.home
+    attribute: temperature
+    above: '70'
+  - platform: numeric_state
+    entity_id: weather.home
+    attribute: temperature
+    below: '60'
+  condition: []
+  action: []
+  mode: single
+- id: '1750708910674'
+  alias: Update Daily Max Energy Cost
+  description: ''
+  triggers:
+  - at: '23:59:00'
+    trigger: time
+  actions:
+  - data_template:
+      entity_id: input_number.stored_daily_energy_cost
+      value: '{{ states(''sensor.daily_energy_cost'') | float(0) }}'
+    action: input_number.set_value
+  mode: single
+- id: '1752814821593'
+  alias: Fetch and Store Daily High Temp
+  triggers:
+  - at: 05:00:00
+    trigger: time
+  actions:
+  - target:
+      entity_id: weather.openweathermap
+    data:
+      type: daily
+    response_variable: forecast_data
+    action: weather.get_forecasts
+  - target:
+      entity_id: input_number.daily_forecast_high_temp
+    data:
+      value: '{{ forecast_data[''weather.openweathermap''].forecast[0].temperature
+        }}
+
+        '
+    action: input_number.set_value
+  mode: single

@@ -1,0 +1,26 @@
+{
+  "created_at": "1970-01-01T00:00:00+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01J3DEYSW1YY3P28R3KRGBKFZ0",
+  "minor_version": 1,
+  "modified_at": "1970-01-01T00:00:00+00:00",
+  "options": {
+    "device_class": "temperature",
+    "device_id": "3e9f4348758f76509d91b354f2b39488",
+    "name": "Ambient Temp",
+    "state": "{{ state_attr('weather.openweathermap', 'temperature') }}",
+    "state_class": "measurement",
+    "template_type": "sensor",
+    "unit_of_measurement": "\u00c2\u00b0F"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Ambient Temp",
+  "unique_id": null,
+  "version": 1
+}

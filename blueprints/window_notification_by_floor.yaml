@@ -1,0 +1,120 @@
+blueprint:
+  name: Window Notification by Floor
+  description: >
+    Sends a notification to open or close windows for a floor based on the ambient
+    vs room temperature difference. Uses binary sensors and prevents duplicate notifications.
+    Only runs on days when the forecasted high is over 90°F.
+  domain: automation
+  input:
+    close_sensor:
+      name: Close Condition Sensor
+      description: Binary sensor that becomes 'on' when ambient > any room temp.
+      selector:
+        entity:
+          domain: binary_sensor
+
+    open_sensor:
+      name: Open Condition Sensor
+      description: Binary sensor that becomes 'on' when ambient < any room temp.
+      selector:
+        entity:
+          domain: binary_sensor
+
+    notify_device:
+      name: Notify Device
+      description: Device to send the notification to.
+      selector:
+        device:
+          integration: mobile_app
+
+    floor_name:
+      name: Floor Name
+      description: A short label like "Upstairs" or "Downstairs" used in the notification text.
+      selector:
+        text:
+
+    input_boolean_close:
+      name: Close Notification Flag
+      description: Input boolean to track if close notification was sent.
+      selector:
+        entity:
+          domain: input_boolean
+
+    input_boolean_open:
+      name: Open Notification Flag
+      description: Input boolean to track if open notification was sent.
+      selector:
+        entity:
+          domain: input_boolean
+
+    forecast_sensor:
+      name: Forecast High Temperature Sensor
+      description: Entity that provides today's forecasted high temperature.
+      selector:
+        entity:
+          domain: sensor
+
+trigger:
+  - platform: state
+    entity_id: !input close_sensor
+    to: "on"
+    for: "00:02:00"
+
+  - platform: state
+    entity_id: !input open_sensor
+    to: "on"
+    for: "00:02:00"
+
+condition:
+  - condition: numeric_state
+    entity_id: !input forecast_sensor
+    above: 80
+
+action:
+  - variables:
+      floor: !input floor_name
+
+  - choose:
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: state
+                entity_id: !input close_sensor
+                state: "on"
+              - condition: state
+                entity_id: !input input_boolean_close
+                state: "off"
+        sequence:
+          - service: notify.mobile_app_phonetonia
+            data:
+              message: >
+                ✅ It's hotter outside than inside on {{ floor }} — close the windows.
+          - service: input_boolean.turn_on
+            target:
+              entity_id: !input input_boolean_close
+          - service: input_boolean.turn_off
+            target:
+              entity_id: !input input_boolean_open
+
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: state
+                entity_id: !input open_sensor
+                state: "on"
+              - condition: state
+                entity_id: !input input_boolean_open
+                state: "off"
+        sequence:
+          - service: notify.mobile_app_phonetonia
+            data:
+              message: >
+                ❄️ It's cooler outside than inside on {{ floor }} — open the windows.
+          - service: input_boolean.turn_on
+            target:
+              entity_id: !input input_boolean_open
+          - service: input_boolean.turn_off
+            target:
+              entity_id: !input input_boolean_close
+
+mode: single

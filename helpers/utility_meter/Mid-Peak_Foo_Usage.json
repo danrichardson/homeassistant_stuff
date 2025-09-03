@@ -1,0 +1,28 @@
+{
+  "created_at": "2025-05-11T23:12:15.646807+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "utility_meter",
+  "entry_id": "01JV0SXPRYNZJV7VTEP80REGQP",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:02.108537+00:00",
+  "options": {
+    "always_available": false,
+    "cycle": "daily",
+    "delta_values": false,
+    "name": "Mid-Peak Foo Usage",
+    "net_consumption": false,
+    "offset": 0.0,
+    "periodically_resetting": true,
+    "source": "sensor.mid_peak_foo",
+    "tariffs": []
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Mid-Peak Foo Usage",
+  "unique_id": null,
+  "version": 2
+}

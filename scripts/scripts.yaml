@@ -1,0 +1,74 @@
+piper_test:
+  alias: Piper Test
+  sequence:
+  - action: tts.speak
+    target:
+      entity_id: tts.piper
+    data:
+      cache: true
+      media_player_entity_id: media_player.kitchen_front
+      message: Good morning!
+  mode: single
+  description: ''
+set_target_soc:
+  alias: set_target_soc
+  sequence:
+  - variables:
+      battery_capacity: 21.1
+      efficiency: 1
+      load_kw: 0.5
+      fill_rate: 3
+      end_of_peak_hour: 21
+      max_hours_possible: 19
+      hours_remaining: '{% set diff = (now().replace(hour=end_of_peak_hour, minute=0,
+        second=0, microsecond=0) - now()).total_seconds() / 3600 %} {{ diff if diff
+        > 0 else 0 }}'
+      reserve_at_end_of_peak: '{{ 2 * ( hours_remaining / max_hours_possible) }}'
+      current_soc: '{{ states(''sensor.available_battery_kwh'') | float }}'
+      solar_forecast_ROD: '{{ states(''sensor.solcast_pv_forecast_forecast_remaining_today'')
+        | float }}'
+      usable_solar: '{{ solar_forecast_ROD * efficiency }}'
+      day_drain: '{{ load_kw * hours_remaining }}'
+      required_energy: '{{ day_drain - usable_solar }}'
+      total_energy_required: '{{ required_energy + reserve_at_end_of_peak }}'
+      charge_needed_raw: '{{ total_energy_required - current_soc }}'
+      charge_needed_clamped: '{{ charge_needed_raw if charge_needed_raw > 0 else 0
+        }}'
+      time_to_fill: '{{ charge_needed_clamped / ( fill_rate - load_kw) }}'
+      total_energy_required_adj: '{{ [total_energy_required + (time_to_fill * load_kw)
+        | float, 0 | float] | max }}'
+      target_soc: '{{ [total_energy_required_adj | float, battery_capacity | float]
+        | min }}'
+  - data:
+      entity_id: input_number.target_soc_kwh
+      value: '{{ target_soc | round(1) }}'
+    action: input_number.set_value
+  - data:
+      entity_id: input_number.required_energy_today
+      value: '{{ (day_drain + reserve_at_end_of_peak) | round(1) }}'
+    action: input_number.set_value
+  - data:
+      entity_id: input_number.charge_needed
+      value: '{{ charge_needed_clamped | round(1) }}'
+    action: input_number.set_value
+  description: ''
+toggle_ac_cool_off:
+  sequence:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ states[entity_id].state == ''cool'' }}
+
+          '
+      sequence:
+      - data:
+          entity_id: '{{ entity_id }}'
+          hvac_mode: 'off'
+        action: climate.set_hvac_mode
+    default:
+    - data:
+        entity_id: '{{ entity_id }}'
+        hvac_mode: cool
+      action: climate.set_hvac_mode
+  alias: Toggle AC Cool/Off
+  description: ''

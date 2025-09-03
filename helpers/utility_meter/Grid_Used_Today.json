@@ -1,0 +1,28 @@
+{
+  "created_at": "2025-06-27T23:42:52.696074+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "utility_meter",
+  "entry_id": "01JYSWBHRRCA07JJP2H0WAS3P9",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:02.109097+00:00",
+  "options": {
+    "always_available": false,
+    "cycle": "daily",
+    "delta_values": false,
+    "name": "Grid Used Today",
+    "net_consumption": false,
+    "offset": 0.0,
+    "periodically_resetting": false,
+    "source": "sensor.vuetonia_123_1mon",
+    "tariffs": []
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Grid Used Today",
+  "unique_id": null,
+  "version": 2
+}
