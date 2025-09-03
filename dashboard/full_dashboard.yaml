@@ -1,0 +1,2755 @@
+kiosk_mode:
+  mobile_settings:
+    hide_header: true
+card_mod:
+  style: |
+    [class^="bubble-sub-button"] {
+      box-shadow:
+        inset 2px 2px 5px rgba(255,255,255,0.3),
+        inset -2px -2px 5px rgba(0,0,0,0.7) !important;
+      opacity: 1 !important;
+    }
+navbar-templates:
+  mobile:
+    desktop:
+      show_labels: true
+      hidden: true
+    mobile: null
+    haptic:
+      url: true
+      tap_action: true
+      hold_action: true
+      double_tap_action: true
+    routes:
+      - url: ./temps
+        icon: mdi:temperature-fahrenheit
+        label: Temperature
+      - url: ./music
+        icon: mdi:music
+        label: Music
+        double_tap_action:
+          action: navigate
+          navigation_path: ./desktop_music
+      - url: ./grid
+        icon: mdi:transmission-tower-import
+        label: Electricity
+        double_tap_action:
+          action: navigate
+          navigation_path: ./battery
+      - url: ./home
+        icon: mdi:home
+        label: Home
+        hold_action:
+          action: toggle-menu
+        double_tap_action:
+          action: navigate
+          navigation_path: /energy
+      - url: ./solar
+        icon: mdi:solar-power-variant
+        label: Solar
+        hold_action:
+          action: open-popup
+        double_tap_action:
+          action: navigate
+          navigation_path: ./solar-stats
+        popup:
+          - icon: mdi:sun-angle
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.ac500_ups_mode
+              data:
+                option: PV_PRIORITY
+          - icon: mdi:power-plug
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.ac500_ups_mode
+              data:
+                option: STANDARD
+      - url: ./soc
+        icon: mdi:power-socket-us
+        label: Usage
+        double_tap_action:
+          action: navigate
+          navigation_path: ./things
+      - icon: mdi:dots-horizontal
+        label: More
+        tap_action:
+          action: open-popup
+        popup:
+          - icon: mdi:camera
+            url: ./camera
+          - icon: mdi:cog
+            url: /config/dashboard
+          - icon: mdi:hammer
+            url: /developer-tools/yaml
+          - icon: mdi:power
+            tap_action:
+              action: call-service
+              service: homeassistant.restart
+              service_data: {}
+              confirmation:
+                text: Are you sure you want to restart Home Assistant?
+views:
+  - sections:
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.daily_energy_cost
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            max: 3
+            needle: true
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: sensor.ac500_total_battery_percent
+            severity:
+              green: 75
+              yellow: 30
+              red: 0
+            name: Battery Percent
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: energy-self-sufficiency-gauge
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: number.remaining_runtime_until_end_of_peak
+            severity:
+              green: 2
+              yellow: -2
+              red: -10
+            needle: true
+            name: Runtime Buffer
+            max: 10
+            min: -10
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: entities
+            entities:
+              - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+                name: Solar Remaining
+                secondary_info: none
+              - type: custom:template-entity-row
+                name: Battery Left To Charge
+                icon: mdi:battery
+                state: >-
+                  {{ (21.1 - states('sensor.available_battery_kwh') | float) |
+                  round(2) }} kWh
+              - entity: sensor.solcast_pv_forecast_forecast_tomorrow
+                name: Solar Forecast Tomorrow
+                secondary_info: last-changed
+              - entity: sensor.solar_produced_today
+                name: Solar Produced Today
+              - entity: sensor.grid_used_today
+                name: Grid Used Today
+          - type: vertical-stack
+            cards:
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_dc_input_current1
+                    name: Solar Input Current (15A Max)
+                  - entity: select.ac500_ups_mode
+                show_header_toggle: false
+        visibility:
+          - condition: screen
+            media_query: '(min-width: 768px)'
+      - type: grid
+        cards:
+          - show_current: true
+            show_forecast: true
+            type: weather-forecast
+            entity: weather.openweathermap
+            forecast_type: daily
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: name
+                styles: |
+                  .bubble-button-background {
+                    opacity: 1 !important;
+                    background-color: ${
+                      state > 150 ? 'darkred' : ''
+                    } !important;
+                  box-shadow:
+                    inset 2px 2px 5px rgba(255,255,255,0.3),
+                    inset -2px -2px 5px rgba(0,0,0,0.7);
+                  }
+                  .bubble-sub-button-1,
+                  .bubble-sub-button-2,
+                  .bubble-sub-button-3,
+                  .bubble-sub-button-4 {
+                    box-shadow:
+                      inset 1px 1px 5px rgba(255,255,255,0.3),
+                      inset -1px -1px 5px rgba(0,0,0,0.7);
+                  }
+                entity: sensor.vuetonia_123_1min
+                sub_button:
+                  - entity: sensor.vuetonia_123_1min
+                    name: ''
+                    icon: mdi:power-plug
+                    show_last_changed: false
+                    show_state: true
+                name: Grid Draw Now
+                button_action:
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#gridpowersummary'
+                tap_action:
+                  action: navigate
+                  navigation_path: '#gridpowersummary'
+                show_state: false
+          - type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            entity: sensor.ambient_vs_indoor_temp
+            show_state: false
+            show_last_changed: true
+            sub_button:
+              - entity: sensor.ambient_vs_indoor_temp
+                show_state: true
+            name: ' '
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#tempsummary'
+            tap_action:
+              action: navigate
+              navigation_path: '#tempsummary'
+            styles: >-
+              .bubble-button-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 1 ? 'darkred' :
+                  state >= -1 ? 'black' :
+                  'darkblue'
+                } !important;
+                box-shadow:
+                  inset 2px 2px 5px rgba(255,255,255,0.3),
+                  inset -2px -2px 5px rgba(0,0,0,0.7);
+                }
+              .bubble-sub-button-1,
+
+              .bubble-sub-button-2,
+
+              .bubble-sub-button-3,
+
+              .bubble-sub-button-4 {
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }
+
+              ${card.querySelector('.bubble-name').innerText =
+              (hass.states['sensor.ambient_vs_indoor_temp'].state < 0 ? 'It’s
+              cooler outside by ' : 'It’s hotter outside by ') +
+              Math.abs(hass.states['sensor.ambient_vs_indoor_temp'].state).toFixed(1)
+              + '°F'}
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: sensor.battery_discharging_power
+            show_state: true
+            show_last_updated: false
+            name: Power
+            show_attribute: false
+            tap_action:
+              action: navigate
+              navigation_path: '#solarinput'
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#solarinput'
+            sub_button:
+              - entity: sensor.ac500_dc_input_power
+                show_name: false
+                show_icon: true
+                show_last_changed: false
+                show_state: true
+                show_background: true
+                icon: mdi:solar-power-variant
+              - entity: sensor.ac500_ac_input_power
+                show_state: true
+                show_background: true
+                icon: mdi:transmission-tower
+                tap_action:
+                  action: navigate
+                  navigation_path: '#powerstats'
+              - entity: sensor.ac500_ac_output_power
+                show_state: true
+            show_last_changed: false
+            scrolling_effect: false
+            styles: |-
+              .bubble-button-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 1000 ? 'darkred' :
+                  state >= 0 ? '' :
+                  'blue'
+                } !important;
+                box-shadow:
+                  inset 2px 2px 5px rgba(255,255,255,0.3),
+                  inset -2px -2px 5px rgba(0,0,0,0.7);
+              }
+              .bubble-sub-button-1,
+              .bubble-sub-button-2,
+              .bubble-sub-button-3,
+              .bubble-sub-button-4 {
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }
+          - type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            entity: sensor.ac500_total_battery_percent
+            show_state: false
+            show_last_changed: false
+            show_attribute: false
+            show_icon: true
+            styles: |
+              .bubble-button-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                /* Embossed effect */
+                box-shadow:
+                  inset 2px 2px 5px rgba(255,255,255,0.3),
+                  inset -2px -2px 5px rgba(0,0,0,0.7);
+              }  
+              .bubble-sub-button-1 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }
+              .bubble-sub-button-2 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }  
+              .bubble-sub-button-3 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }  
+              .bubble-sub-button-4 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }  
+            tap_action:
+              action: navigate
+              navigation_path: '#batterystate'
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#batterystate'
+            card_layout: large
+            rows: '1'
+            name: Battery
+            sub_button:
+              - entity: sensor.ac500_total_battery_percent
+                show_state: true
+                show_icon: true
+                tap_action:
+                  action: navigate
+                  navigation_path: '#ac500'
+              - show_state: true
+                show_icon: false
+                state_background: true
+                show_background: true
+                entity: sensor.ac500_pack_percent1
+                tap_action:
+                  action: navigate
+                  navigation_path: '#bluetti'
+              - entity: sensor.ac500_pack_percent3
+                show_state: true
+                show_icon: false
+                tap_action:
+                  action: navigate
+                  navigation_path: '#bluetti'
+              - entity: sensor.vatrer_battery_battery
+                show_state: true
+                tap_action:
+                  action: navigate
+                  navigation_path: '#vatrer'
+            scrolling_effect: false
+            attribute: state_class
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.dining_room_2
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+            scrolling_effect: false
+            show_state: false
+            show_attribute: true
+            attribute: current_temperature
+            styles: |
+              .bubble-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 150 ? 'darkred' : ''
+                } !important;
+              box-shadow:
+                inset 2px 2px 5px rgba(255,255,255,0.3),
+                inset -2px -2px 5px rgba(0,0,0,0.7);
+              }
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:fine)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.midea_climate
+                  step: 1
+                  name: Dining Room AC
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.midea_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.midea_climate
+                    - name: Fan modes
+                      entity: climate.midea_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.midea_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:coarse)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.midea_climate
+                  step: 1
+                  name: DR AC
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.midea_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.midea_climate
+                    - name: Fan modes
+                      entity: climate.midea_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.midea_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:fine)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.151732605303264_climate
+                  step: 1
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.151732605303264_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.151732605303264_climate
+                    - name: Fan modes
+                      entity: climate.151732605303264_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.151732605303264_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  name: Bedroom AC
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+                      .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6) {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:coarse)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.151732605303264_climate
+                  step: 1
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.151732605303264_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.151732605303264_climate
+                    - name: Fan modes
+                      entity: climate.151732605303264_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.151732605303264_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  name: BR AC
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+                      .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6) {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+      - type: grid
+        cards:
+          - type: history-graph
+            show_names: false
+            entities:
+              - entity: sensor.ac500_dc_input_power
+                name: Solar Input
+              - entity: sensor.ac500_ac_input_power
+                name: Power Draw
+              - entity: sensor.ac500_ac_output_power
+                name: Inverter Output
+            min_y_axis: 0
+            hours_to_show: 4
+            fit_y_data: true
+            max_y_axis: 100
+            title: Energy Balance - AC & Solar
+            grid_options:
+              columns: 12
+              rows: 5.4
+          - type: entities
+            entities:
+              - entity: climate.midea_climate
+                name: Midea AC (Set/Current)
+              - entity: sensor.ambient_temp
+              - entity: sensor.dining_room_temperature
+              - entity: sensor.server_room_temperature_2
+              - entity: sensor.office_temperature_2
+              - entity: sensor.foo1_temperature_2
+              - entity: sensor.foo2_temperature_2
+              - entity: sensor.foo3_temperature_2
+            title: Thermostat Sensors
+        visibility:
+          - condition: screen
+            media_query: '(min-width: 768px)'
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#batterystate'
+                button_type: name
+                show_header: false
+                name: Battery State
+                width_desktop: 80%
+                close_on_click: true
+                show_icon: true
+              - type: history-graph
+                show_names: false
+                entities:
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Bluetti SoC
+                  - entity: sensor.ac500_pack_percent1
+                    name: B300
+                  - entity: sensor.ac500_pack_percent3
+                    name: B300
+                  - entity: sensor.vatrer_battery_battery
+                    name: Vatrer
+                min_y_axis: 0
+                fit_y_data: false
+                max_y_axis: 100
+                title: Battery SOC
+                hours_to_show: 24
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Bluetti Battery
+                  - entity: sensor.ac500_pack_percent1
+                    name: Battery Pack 1
+                    secondary_info: none
+                  - entity: sensor.ac500_pack_percent3
+                    name: Battery Pack 3
+                  - entity: sensor.vatrer_battery_battery
+                    name: Vatrer Battery
+            grid_options:
+              columns: full
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#solarinput'
+                button_type: name
+                card_layout: normal
+                width_desktop: 80%
+                close_on_click: true
+                show_header: false
+              - type: history-graph
+                show_names: false
+                entities:
+                  - entity: sensor.ac500_dc_input_power
+                    name: Solar Input
+                  - entity: sensor.ac500_ac_input_power
+                    name: Power Draw
+                  - entity: sensor.ac500_ac_output_power
+                    name: Inverter Output
+                min_y_axis: 0
+                hours_to_show: 4
+                fit_y_data: true
+                max_y_axis: 100
+                title: Energy Balance - AC & Solar
+              - type: entities
+                entities:
+                  - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+                    name: Solar Remaining
+                    secondary_info: none
+                  - type: custom:template-entity-row
+                    name: Battery Left To Charge
+                    icon: mdi:battery
+                    state: >-
+                      {{ (21.1 - states('sensor.available_battery_kwh') | float)
+                      | round(2) }} kWh
+                  - entity: sensor.solcast_pv_forecast_forecast_tomorrow
+                    name: Solar Forecast Tomorrow
+                    secondary_info: last-changed
+                  - entity: sensor.solar_produced_today
+                    name: Solar Produced Today
+                  - entity: sensor.grid_used_today
+                    name: Grid Used Today
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#gridpowersummary'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    name: Today's Energy Usage
+                    tap_action:
+                      action: navigate
+                      navigation_path: /energy
+                    show_icon: false
+                    show_name: true
+                    style: |
+                      ha-card {
+                        background: none;
+                        box-shadow: none;
+                        padding: 0 16px;
+                        font-size: 20px;
+                        font-weight: bold;
+                        text-align: left;
+                      }
+                  - square: true
+                    type: grid
+                    cards:
+                      - type: gauge
+                        entity: sensor.daily_energy_cost
+                        severity:
+                          green: 0
+                          yellow: 1
+                          red: 2
+                        max: 3
+                        needle: true
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                      - type: gauge
+                        entity: sensor.ac500_total_battery_percent
+                        severity:
+                          green: 75
+                          yellow: 30
+                          red: 0
+                        name: Battery Percent
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                      - type: energy-self-sufficiency-gauge
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                      - type: gauge
+                        entity: number.remaining_runtime_until_end_of_peak
+                        severity:
+                          green: 2
+                          yellow: -2
+                          red: -10
+                        needle: true
+                        name: Runtime Buffer
+                        max: 10
+                        min: -10
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                    columns: 2
+                  - type: entities
+                    entities:
+                      - entity: sensor.vuetonia_123_1min
+                        name: Grid Draw (last minute)
+                      - entity: sensor.peak_foo_usage
+                        name: Peak Usage
+                      - entity: sensor.mid_peak_foo_usage
+                        name: Mid-Peak Usage
+                      - entity: sensor.off_peak_foo_usage
+                        name: Off-Peak Usage
+                    show_header_toggle: false
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#tempsummary'
+                button_type: name
+                close_on_click: true
+                show_header: false
+                width_desktop: 80%
+              - type: custom:plotly-graph
+                entities:
+                  - entity: sensor.ambient_temp
+                    name: Amb
+                    line:
+                      width: 4
+                      shape: spline
+                  - entity: sensor.dining_room_current_temperature
+                    name: Indoor
+                    line:
+                      width: 4
+                      shape: spline
+                  - entity: sensor.ambient_vs_indoor_temp
+                    name: Delta
+                    line:
+                      width: 4
+                      shape: spline
+                hours_to_show: 24
+                refresh_interval: 10
+              - type: entities
+                entities:
+                  - entity: sensor.ambient_temp
+                    name: Ambient
+                  - entity: climate.midea_climate
+                    name: Dining Room AC (Set/Current)
+                  - entity: sensor.foo1_temperature_2
+                    name: foo1
+                  - entity: sensor.foo2_temperature_2
+                    name: foo2
+                  - entity: sensor.foo3_temperature_2
+                    name: foo3
+                  - entity: sensor.office_temperature_2
+                    name: Office
+                  - entity: sensor.server_room_temperature_2
+                    name: Laundry Room
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#vatrer'
+                button_type: name
+                show_header: false
+                background_update: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.vatrer_battery_battery
+                    name: Battery
+                  - entity: binary_sensor.vatrer_battery_charging
+                    name: Charging
+                  - entity: sensor.vatrer_battery_voltage
+                    name: Voltage
+                  - entity: sensor.vatrer_battery_stored_energy
+                    name: Stored energy
+                  - entity: sensor.vatrer_battery_current
+                    name: Current
+                  - entity: sensor.vatrer_battery_power
+                    name: Power
+                  - entity: sensor.vatrer_battery_temperature
+                    name: Temperature
+                title: Vatrer Batteries
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#ac500'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_ac_input_power
+                    name: AC Input Power
+                  - entity: sensor.ac500_dc_input_power
+                    name: DC Input Power
+                  - entity: sensor.ac500_dc_input_current1
+                    name: DC Input Current
+                  - entity: sensor.ac500_dc_input_voltage1
+                    name: DC Input Voltage
+                  - entity: sensor.ac500_ac_output_power
+                    name: AC Output Power
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Total Battery Percent
+                  - entity: sensor.ac500_pack_voltage1
+                    name: Battery Pack 1 Voltage
+                  - entity: sensor.ac500_pack_voltage3
+                    name: Battery Pack 3 Voltage
+                  - entity: select.ac500_ups_mode
+                  - entity: sensor.battery_charging_power
+                  - entity: sensor.battery_discharging_power
+                title: Inverter - AC500
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#powerstats'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.vuetonia_123_1min
+                    name: Grid Draw
+                  - entity: sensor.dr_ac_power_minute_average
+                    name: Dining Room AC
+                  - entity: sensor.foo1_br_ac_power_minute_average
+                    name: foo1 Bedroom AC
+                  - entity: sensor.stove_12_1min
+                    name: Stove
+                  - entity: sensor.server_power_minute_average
+                    name: Server
+                  - entity: sensor.vuetonia_11_1min
+                    name: Fridge
+                  - entity: sensor.freezer_washing_machine_5_1min
+                    name: Freezer / Washing Machine
+                  - entity: sensor.furnace_6_1min
+                    name: Furnace
+                  - entity: sensor.kitchen_13_1min
+                    name: Kitchen
+                  - entity: sensor.wifi_tv_office_8_1min
+                    name: WiFi / TV / Office
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#bluetti'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Bluetti Battery
+                  - entity: sensor.ac500_pack_percent1
+                    name: Battery Pack 1
+                    secondary_info: none
+                  - entity: sensor.ac500_pack_percent3
+                    name: Battery Pack 3
+                  - entity: sensor.vatrer_battery_battery
+                    name: Vatrer Battery
+                show_header_toggle: true
+                title: Bluetti Batteries
+    type: sections
+    max_columns: 3
+    icon: mdi:home
+    cards: []
+    path: home
+  - type: sections
+    max_columns: 1
+    icon: mdi:transmission-tower-import
+    path: grid
+    sections:
+      - type: grid
+        cards:
+          - type: entities
+            entities:
+              - entity: sensor.peak_power_2
+              - entity: sensor.mid_peak_power
+              - entity: sensor.off_peak_power_2
+            show_header_toggle: true
+          - type: entities
+            entities:
+              - entity: sensor.vuetonia_123_1min
+                name: Grid Draw
+              - entity: sensor.dr_ac_power_minute_average
+                name: Dining Room AC
+              - entity: sensor.foo1_br_ac_power_minute_average
+                name: foo1 Bedroom AC
+              - entity: sensor.vuetonia_11_1min
+                name: Fridge
+              - entity: sensor.kitchen_13_1min
+                name: Kitchen
+              - entity: sensor.stove_12_1min
+                name: Stove
+              - entity: sensor.freezer_washing_machine_5_1min
+                name: Freezer / Washing Machine
+              - entity: sensor.wifi_tv_office_8_1min
+                name: WiFi / TV / Office
+              - entity: sensor.furnace_6_1min
+                name: Furnace
+              - entity: sensor.server_power_minute_average
+                name: Server
+              - entity: sensor.hallway_power_minute_average
+                name: Hallway
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: sections
+    max_columns: 1
+    icon: mdi:solar-power-variant
+    path: solar
+    sections:
+      - type: grid
+        cards:
+          - type: history-graph
+            show_names: false
+            entities:
+              - entity: sensor.ac500_dc_input_power
+                name: Solar Input
+              - entity: sensor.ac500_ac_input_power
+                name: Power Draw
+              - entity: sensor.ac500_ac_output_power
+                name: Inverter Output
+            min_y_axis: 0
+            hours_to_show: 4
+            fit_y_data: true
+            max_y_axis: 100
+            title: Energy Balance - AC & Solar
+            grid_options:
+              columns: 12
+              rows: 5.4
+          - type: entities
+            entities:
+              - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+                name: Solar Remaining
+                secondary_info: none
+              - type: custom:template-entity-row
+                name: Battery Left To Charge
+                icon: mdi:battery
+                state: >-
+                  {{ (21.1 - states('sensor.available_battery_kwh') | float) |
+                  round(2) }} kWh
+              - entity: sensor.solcast_pv_forecast_forecast_tomorrow
+                name: Solar Forecast Tomorrow
+                secondary_info: last-changed
+              - entity: sensor.solar_produced_today
+                name: Solar Produced Today
+              - entity: sensor.grid_used_today
+                name: Grid Used Today
+          - type: vertical-stack
+            cards:
+              - type: entities
+                entities:
+                  - entity: select.ac500_ups_mode
+                show_header_toggle: false
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: custom:grid-layout
+    layout:
+      grid-template-columns: 1fr
+      grid-template-rows: minmax(300px, 60%) minmax(200px, 1fr)
+      grid-gap: 0px
+      margin: 0
+      height: 94vh
+      card_mod:
+        style: |
+          :host {
+            overflow: hidden !important;
+          }
+          #root {
+            overflow: auto !important;  # <-- allow scrolling
+            max-height: 100vh;
+          }
+          @media (min-width: 1600px) {
+            #root {
+              display: grid !important;
+              grid-template-columns: 15% 70% 15% !important;
+              grid-template-rows: auto auto;
+              gap: 5px;
+            }
+          }
+    cards:
+      - type: horizontal-stack
+        card_mod:
+          style: |
+            :host {
+              display: block;
+              height: 100%;
+              overflow-y: auto !important;
+            }
+        cards:
+          - type: custom:sonos-card
+            sections:
+              - groups
+              - volumes
+            heightPercentage: 100
+            widthPercentage: 100
+            card_mod:
+              style:
+                .: |
+                  ha-card {
+                    height: 100% !important;
+                    min-height: 300px;
+                    overflow: hidden !important;
+                  }
+                  :host {
+                    min-width: 50px;
+                    max-width: 300px;
+                  }
+                sonos-groups$ sonos-group$: |
+                  mwc-list-item {
+                    margin: 5px !important;
+                  }
+                  .row {
+                    margin: .8rem !important;
+                  }
+          - type: custom:sonos-card
+            sections:
+              - player
+            showVolumeUpAndDownButtons: true
+            showFastForwarfoo1dRewindButtons: false
+            hidePlayerControlPowerButton: true
+            hidePlayerControlShuffleButton: true
+            dynamicVolumeSlider: false
+            hidePlayerControlPrevTrackButton: false
+            hidePlayerControlRepeatButton: true
+            topFavorites:
+              - ''
+            predefinedGroups:
+              - name: Up
+                media: ''
+                entities:
+                  - player: media_player.living_room_front
+                  - player: media_player.kitchen_front
+                  - player: media_player.kitchen_rear
+                  - player: media_player.entry
+                  - player: media_player.unnamed_room
+              - name: Down
+                media: ''
+                entities:
+                  - player: media_player.office
+                  - player: media_player.tv_room
+              - name: Most
+                media: ''
+                entities:
+                  - player: media_player.unnamed_room
+                  - player: media_player.living_room_front
+                  - player: media_player.entry
+                  - player: media_player.kitchen_front
+                  - player: media_player.kitchen_rear
+                  - player: media_player.office
+                  - player: media_player.tv_room
+            widthPercentage: 1000
+            card_mod:
+              style:
+                .: |
+                  ha-card {
+                    height: 100% !important;
+                    min-height: 300px;
+                    overflow: hidden !important;
+                  }
+                  :host {
+                    flex: 1 1 auto !important;
+                    min-width: 300px;
+                  }
+                sonos-player$ sonos-player-controls$ sonos-ha-player$ more-info-content$ more-info-media_player$: |
+                  ha-icon-button:nth-child(1) {
+                    display: none;
+                  }
+                sonos-player$: |
+                  .container {
+                    display: grid;
+                    grid-template-areas:
+                      'header'
+                      'controls'
+                      'artwork' !important;
+                    grid-template-columns: 1fr !important;
+                    grid-template-rows: auto auto 1fr;
+                    gap: 1rem;
+                    align-items: stretch;
+                  }
+                  @media (min-width: 1400px) {
+                    .container {
+                      grid-template-areas:
+                        'header artwork'
+                        'controls artwork' !important;
+                      grid-template-columns: 650px 1fr !important;
+                      grid-template-rows: auto 1fr;
+                    }
+                  }
+                  .header, .controls {
+                    min-width: 0;
+                  }
+                sonos-player$ sonos-player-controls$ sonos-volume$: |
+                  ha-control-slider {
+                    height: 15px;
+                    --control-slider-color: var(--accent-color) !important;
+                    margin-top: 2.5rem;
+                    margin-bottom: -20px;
+                  }
+                  ha-icon-button {
+                    --mdc-icon-size: 2.3rem !important;
+                    margin-top: 25px;
+                    margin-right: 10px;
+                    margin-left: 3px;
+                  }
+                  .percentage {
+                    font-size: 16px !important;
+                    color: lightgrey;
+                    padding-top: 20px;
+                  }
+                  .volume-level {
+                    font-size: x-small !important;
+                    color: transparent;
+                  }
+                sonos-player$ sonos-player-header$: |
+                  .entity {
+                    font-size: 28px !important;
+                    padding: 40px 8px !important;
+                    margin: 0 !important;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                  }
+                  .song {
+                    font-size: 20px !important;
+                    padding: 20px 8px !important;
+                    margin: 0 !important;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                  }
+                  .artist-album {
+                    font-size: 1rem !important;
+                    color: lightgrey !important;
+                    text-align: left;
+                    padding: 20px 8px !important;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    max-width: 100%;
+                  }
+          - type: custom:sonos-card
+            sections:
+              - grouping
+            widthPercentage: 1000
+            card_mod:
+              style:
+                .: |
+                  ha-card {
+                    height: 100% !important;
+                    min-height: 300px;
+                    overflow: hidden !important;
+                  }
+                  :host {
+                    min-width: 100px;
+                    max-width: 300px;
+                  }
+                sonos-grouping$: |
+                  .item {
+                    padding-top: 0rem !important;
+                    padding-bottom: 0 !important;
+                    border-bottom: 5px !important;
+                  }
+        view_layout:
+          grid-column: 1
+          grid-row: 1
+      - type: custom:sonos-card
+        sections:
+          - media browser
+        favoritesItemsPerRow: 11
+        topFavorites:
+          - ''
+        hideBrowseMediaButton: true
+        widthPercentage: 1000
+        card_mod:
+          style: |
+            ha-card {
+              height: 100% !important;
+              width: 100% !important;
+              max-width: none !important;
+              overflow: hidden !important;
+            }
+        view_layout:
+          grid-column: 1
+          grid-row: 2
+    icon: mdi:music-accidental-sharp
+    path: desktop_music
+  - type: sections
+    max_columns: 1
+    icon: mdi:power-socket-us
+    path: soc
+    sections:
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.daily_energy_cost
+            unit: $
+            max: 4
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: sensor.daily_peak_energy_cost
+            max: 3
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            needle: true
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: sensor.daily_mid_peak_energy_cost
+            max: 3
+            needle: true
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: sensor.daily_off_peak_energy_cost
+            max: 3
+            needle: true
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: history-graph
+            show_names: false
+            entities:
+              - entity: sensor.ac500_total_battery_percent
+                name: Bluetti SoC
+              - entity: sensor.ac500_pack_percent2
+                name: B300
+              - entity: sensor.ac500_pack_percent3
+                name: B300k
+              - entity: sensor.vatrer_battery_battery
+                name: Vatrer
+            min_y_axis: 0
+            fit_y_data: false
+            max_y_axis: 100
+            title: Battery SOC
+            hours_to_show: 24
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: sections
+    max_columns: 1
+    icon: mdi:temperature-fahrenheit
+    path: temps
+    sections:
+      - type: grid
+        cards:
+          - type: custom:plotly-graph
+            entities:
+              - entity: sensor.ambient_temp
+                name: Amb
+                line:
+                  width: 4
+                  shape: spline
+              - entity: sensor.dining_room_current_temperature
+                name: Indoor
+                line:
+                  width: 4
+                  shape: spline
+              - entity: sensor.ambient_vs_indoor_temp
+                name: Delta
+                line:
+                  width: 4
+                  shape: spline
+            hours_to_show: 24
+            refresh_interval: 10
+          - type: entities
+            entities:
+              - entity: climate.midea_climate
+                name: Midea AC (Set/Current)
+              - entity: sensor.ambient_temp
+              - entity: sensor.foo1_temperature_2
+              - entity: sensor.foo2_temperature_2
+              - entity: sensor.foo3_temperature_2
+              - entity: sensor.dining_room_temperature
+              - entity: sensor.server_room_temperature_2
+              - entity: sensor.office_temperature_2
+            title: Thermostat Sensors
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: sections
+    max_columns: 1
+    icon: mdi:battery-50
+    path: battery
+    sections:
+      - type: grid
+        cards:
+          - type: entities
+            entities:
+              - entity: sensor.ac500_total_battery_percent
+                name: Bluetti Battery
+              - entity: sensor.ac500_pack_percent1
+                name: Battery Pack 2
+                secondary_info: none
+              - entity: sensor.ac500_pack_percent3
+                name: Battery Pack 3
+              - entity: sensor.vatrer_battery_battery
+                name: Vatrer Battery
+            title: Bluetti Batteries
+          - type: entities
+            entities:
+              - entity: sensor.vatrer_battery_battery
+                name: Battery
+              - entity: binary_sensor.vatrer_battery_charging
+                name: Charging
+              - entity: sensor.vatrer_battery_voltage
+                name: Voltage
+              - entity: sensor.vatrer_battery_stored_energy
+                name: Stored energy
+              - entity: sensor.vatrer_battery_current
+                name: Current
+              - entity: sensor.vatrer_battery_power
+                name: Power
+              - entity: sensor.vatrer_battery_temperature
+                name: Temperature
+            title: Vatrer Batteries
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: sections
+    max_columns: 1
+    path: things
+    icon: mdi:lightbulb
+    sections:
+      - type: grid
+        cards:
+          - type: entities
+            entities:
+              - entity: switch.foo1_br_ac
+              - entity: light.back_porch_light
+              - entity: light.basement_back
+              - entity: light.basement_front
+              - entity: light.garage
+              - entity: light.garage_light
+              - entity: light.porch_light
+              - entity: light.side_door
+              - entity: light.upstairs_light
+              - entity: switch.office_heater
+              - entity: switch.hallway
+              - entity: lock.side_door_lock
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: sections
+    icon: mdi:music
+    path: music
+    sections:
+      - type: grid
+        cards:
+          - type: custom:sonos-card
+            card_mod:
+              style: |
+                @media (pointer: coarse) {
+                  ha-card {
+                    height: 85vh !important;
+                    max-height: 100vh !important;
+                    overflow: hidden !important;
+                  }
+                  sonos-player {
+                    height: 120% !important;
+                  }
+                  sonos-player .container {
+                    height: 120% !important;
+                    align-items: stretch !important;
+                  }
+                }
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+    max_columns: 1
+    header:
+      layout: responsive
+      badges_position: bottom
+      badges_wrap: wrap
+  - type: sections
+    max_columns: 1
+    icon: mdi:lightning-bolt
+    path: solar-stats
+    sections:
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.daily_energy_cost
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            max: 3
+            needle: true
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: sensor.ac500_total_battery_percent
+            severity:
+              green: 75
+              yellow: 30
+              red: 0
+            name: Battery Percent
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: energy-self-sufficiency-gauge
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: number.remaining_runtime_until_end_of_peak
+            severity:
+              green: 2
+              yellow: -2
+              red: -10
+            needle: true
+            name: Runtime Buffer
+            max: 10
+            min: -10
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: entities
+            entities:
+              - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+                name: Solar Remaining
+                secondary_info: none
+              - type: custom:template-entity-row
+                name: Battery Left To Charge
+                icon: mdi:battery
+                state: >-
+                  {{ (21.1 - states('sensor.available_battery_kwh') | float) |
+                  round(2) }} kWh
+              - entity: sensor.solcast_pv_forecast_forecast_tomorrow
+                name: Solar Forecast Tomorrow
+                secondary_info: last-changed
+              - entity: sensor.solar_produced_today
+                name: Solar Produced Today
+              - entity: sensor.grid_used_today
+                name: Grid Used Today
+          - type: vertical-stack
+            cards:
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_dc_input_current1
+                    name: Solar Input Current (15A Max)
+                  - entity: select.ac500_ups_mode
+                show_header_toggle: false
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - type: sections
+    max_columns: 1
+    icon: mdi:camera
+    path: camera
+    sections:
+      - type: grid
+        cards:
+          - show_state: true
+            show_name: true
+            camera_view: auto
+            fit_mode: fill
+            type: picture-entity
+            entity: camera.pixel_tablet
+            camera_image: camera.pixel_tablet
+            name: Tablet
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+    cards: []
+  - sections:
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.daily_energy_cost
+            severity:
+              green: 0
+              yellow: 1
+              red: 2
+            max: 3
+            needle: true
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: sensor.ac500_total_battery_percent
+            severity:
+              green: 75
+              yellow: 30
+              red: 0
+            name: Battery Percent
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: energy-self-sufficiency-gauge
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: gauge
+            entity: number.remaining_runtime_until_end_of_peak
+            severity:
+              green: 2
+              yellow: -2
+              red: -10
+            needle: true
+            name: Runtime Buffer
+            max: 10
+            min: -10
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: entities
+            entities:
+              - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+                name: Solar Remaining
+                secondary_info: none
+              - type: custom:template-entity-row
+                name: Battery Left To Charge
+                icon: mdi:battery
+                state: >-
+                  {{ (21.1 - states('sensor.available_battery_kwh') | float) |
+                  round(2) }} kWh
+              - entity: sensor.solcast_pv_forecast_forecast_tomorrow
+                name: Solar Forecast Tomorrow
+                secondary_info: last-changed
+              - entity: sensor.solar_produced_today
+                name: Solar Produced Today
+              - entity: sensor.grid_used_today
+                name: Grid Used Today
+          - type: vertical-stack
+            cards:
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_dc_input_current1
+                    name: Solar Input Current (15A Max)
+                  - entity: select.ac500_ups_mode
+                show_header_toggle: false
+        visibility:
+          - condition: screen
+            media_query: '(min-width: 768px)'
+      - type: grid
+        cards:
+          - type: custom:clock-weather-card
+            entity: weather.openweathermap
+            forecast_rows: 3
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: name
+                styles: |
+                  .bubble-button-background {
+                    opacity: 1 !important;
+                    background-color: ${
+                      state > 150 ? 'darkred' : ''
+                    } !important;
+                  box-shadow:
+                    inset 2px 2px 5px rgba(255,255,255,0.3),
+                    inset -2px -2px 5px rgba(0,0,0,0.7);
+                  }
+                  .bubble-sub-button-1,
+                  .bubble-sub-button-2,
+                  .bubble-sub-button-3,
+                  .bubble-sub-button-4 {
+                    box-shadow:
+                      inset 1px 1px 5px rgba(255,255,255,0.3),
+                      inset -1px -1px 5px rgba(0,0,0,0.7);
+                  }
+                entity: sensor.vuetonia_123_1min
+                sub_button:
+                  - entity: sensor.vuetonia_123_1min
+                    name: ''
+                    icon: mdi:power-plug
+                    show_last_changed: false
+                    show_state: true
+                name: Grid Draw Now
+                button_action:
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#gridpowersummary'
+                tap_action:
+                  action: navigate
+                  navigation_path: '#gridpowersummary'
+                show_state: false
+          - type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            entity: sensor.ambient_vs_indoor_temp
+            show_state: false
+            show_last_changed: true
+            sub_button:
+              - entity: sensor.ambient_vs_indoor_temp
+                show_state: true
+            name: ' '
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#tempsummary'
+            tap_action:
+              action: navigate
+              navigation_path: '#tempsummary'
+            styles: >-
+              .bubble-button-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 1 ? 'darkred' :
+                  state >= -1 ? 'black' :
+                  'darkblue'
+                } !important;
+                box-shadow:
+                  inset 2px 2px 5px rgba(255,255,255,0.3),
+                  inset -2px -2px 5px rgba(0,0,0,0.7);
+                }
+              .bubble-sub-button-1,
+
+              .bubble-sub-button-2,
+
+              .bubble-sub-button-3,
+
+              .bubble-sub-button-4 {
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }
+
+              ${card.querySelector('.bubble-name').innerText =
+              (hass.states['sensor.ambient_vs_indoor_temp'].state < 0 ? 'It’s
+              cooler outside by ' : 'It’s hotter outside by ') +
+              Math.abs(hass.states['sensor.ambient_vs_indoor_temp'].state).toFixed(1)
+              + '°F'}
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            entity: sensor.battery_discharging_power
+            show_state: true
+            show_last_updated: false
+            name: Power
+            show_attribute: false
+            tap_action:
+              action: navigate
+              navigation_path: '#solarinput'
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#solarinput'
+            sub_button:
+              - entity: sensor.ac500_dc_input_power
+                show_name: false
+                show_icon: true
+                show_last_changed: false
+                show_state: true
+                show_background: true
+                icon: mdi:solar-power-variant
+              - entity: sensor.ac500_ac_input_power
+                show_state: true
+                show_background: true
+                icon: mdi:transmission-tower
+                tap_action:
+                  action: navigate
+                  navigation_path: '#powerstats'
+              - entity: sensor.ac500_ac_output_power
+                show_state: true
+            show_last_changed: false
+            scrolling_effect: false
+            styles: |-
+              .bubble-button-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 1000 ? 'darkred' :
+                  state >= 0 ? '' :
+                  'blue'
+                } !important;
+                box-shadow:
+                  inset 2px 2px 5px rgba(255,255,255,0.3),
+                  inset -2px -2px 5px rgba(0,0,0,0.7);
+              }
+              .bubble-sub-button-1,
+              .bubble-sub-button-2,
+              .bubble-sub-button-3,
+              .bubble-sub-button-4 {
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }
+          - type: custom:bubble-card
+            card_type: button
+            button_type: switch
+            entity: sensor.ac500_total_battery_percent
+            show_state: false
+            show_last_changed: false
+            show_attribute: false
+            show_icon: true
+            styles: |
+              .bubble-button-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                /* Embossed effect */
+                box-shadow:
+                  inset 2px 2px 5px rgba(255,255,255,0.3),
+                  inset -2px -2px 5px rgba(0,0,0,0.7);
+              }  
+              .bubble-sub-button-1 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }
+              .bubble-sub-button-2 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }  
+              .bubble-sub-button-3 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }  
+              .bubble-sub-button-4 {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 75 ? 'blue' :
+                  state >= 30 ? '' :
+                  'darkred'
+                } !important;
+                
+                box-shadow:
+                  inset 1px 1px 5px rgba(255,255,255,0.3),
+                  inset -1px -1px 5px rgba(0,0,0,0.7);
+              }  
+            tap_action:
+              action: navigate
+              navigation_path: '#batterystate'
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: '#batterystate'
+            card_layout: large
+            rows: '1'
+            name: Battery
+            sub_button:
+              - entity: sensor.ac500_total_battery_percent
+                show_state: true
+                show_icon: true
+                tap_action:
+                  action: navigate
+                  navigation_path: '#ac500'
+              - show_state: true
+                show_icon: false
+                state_background: true
+                show_background: true
+                entity: sensor.ac500_pack_percent2
+                tap_action:
+                  action: navigate
+                  navigation_path: '#bluetti'
+              - entity: sensor.ac500_pack_percent3
+                show_state: true
+                show_icon: false
+                tap_action:
+                  action: navigate
+                  navigation_path: '#bluetti'
+              - entity: sensor.vatrer_battery_battery
+                show_state: true
+                tap_action:
+                  action: navigate
+                  navigation_path: '#vatrer'
+            scrolling_effect: false
+            attribute: state_class
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.dining_room_2
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+            scrolling_effect: false
+            show_state: false
+            show_attribute: true
+            attribute: current_temperature
+            styles: |
+              .bubble-background {
+                opacity: 1 !important;
+                background-color: ${
+                  state > 150 ? 'darkred' : ''
+                } !important;
+              box-shadow:
+                inset 2px 2px 5px rgba(255,255,255,0.3),
+                inset -2px -2px 5px rgba(0,0,0,0.7);
+              }
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:fine)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.midea_climate
+                  step: 1
+                  name: Dining Room AC
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.midea_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.midea_climate
+                    - name: Fan modes
+                      entity: climate.midea_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.midea_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:coarse)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.midea_climate
+                  step: 1
+                  name: DR AC
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.midea_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.midea_climate
+                    - name: Fan modes
+                      entity: climate.midea_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.midea_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:fine)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.151732605303264_climate
+                  step: 1
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.151732605303264_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.151732605303264_climate
+                    - name: Fan modes
+                      entity: climate.151732605303264_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.151732605303264_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  name: Bedroom AC
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+                      .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6) {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+              - type: conditional
+                conditions:
+                  - condition: screen
+                    media_query: (pointer:coarse)
+                card:
+                  type: custom:bubble-card
+                  card_type: climate
+                  entity: climate.151732605303264_climate
+                  step: 1
+                  sub_button:
+                    - name: Toggle AC
+                      icon: mdi:power
+                      entity: climate.151732605303264_climate
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      hide_when_parent_unavailable: false
+                      tap_action:
+                        action: call-service
+                        service: script.toggle_ac_cool_off
+                        data:
+                          entity_id: climate.151732605303264_climate
+                    - name: Fan modes
+                      entity: climate.151732605303264_climate
+                      select_attribute: fan_modes
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                      icon: mdi:fan-remove
+                    - name: Presets
+                      entity: climate.151732605303264_climate
+                      select_attribute: preset_modes
+                      icon: mdi:air-filter
+                      state_background: true
+                      show_arrow: false
+                      show_icon: true
+                  show_attribute: true
+                  attribute: current_temperature
+                  name: BR AC
+                  icon: mdi:air-conditioner
+                  styles: >
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(2)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(4)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(5)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-1 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }  
+                      .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6) {
+                      display: none;
+                    }
+
+                    .bubble-sub-button-3 ha-select mwc-list-item:nth-of-type(6)
+                    {
+                      display: none;
+                    }
+
+                    .bubble-background {
+                      box-shadow:
+                        inset 2px 2px 5px rgba(255,255,255,0.3),
+                        inset -2px -2px 5px rgba(0,0,0,0.7);
+                    }
+                  scrolling_effect: false
+      - type: grid
+        cards:
+          - type: history-graph
+            show_names: false
+            entities:
+              - entity: sensor.ac500_dc_input_power
+                name: Solar Input
+              - entity: sensor.ac500_ac_input_power
+                name: Power Draw
+              - entity: sensor.ac500_ac_output_power
+                name: Inverter Output
+            min_y_axis: 0
+            hours_to_show: 4
+            fit_y_data: true
+            max_y_axis: 100
+            title: Energy Balance - AC & Solar
+            grid_options:
+              columns: 12
+              rows: 5.4
+          - type: entities
+            entities:
+              - entity: climate.midea_climate
+                name: Midea AC (Set/Current)
+              - entity: sensor.ambient_temp
+              - entity: sensor.dining_room_temperature
+              - entity: sensor.server_room_temperature_2
+              - entity: sensor.office_temperature_2
+              - entity: sensor.foo1_temperature_2
+              - entity: sensor.foo2_temperature_2
+              - entity: sensor.foo3_temperature_2
+            title: Thermostat Sensors
+        visibility:
+          - condition: screen
+            media_query: '(min-width: 768px)'
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            template: mobile
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#batterystate'
+                button_type: name
+                show_header: false
+                name: Battery State
+                width_desktop: 80%
+                close_on_click: true
+                show_icon: true
+              - type: history-graph
+                show_names: false
+                entities:
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Bluetti SoC
+                  - entity: sensor.ac500_pack_percent2
+                    name: B300
+                  - entity: sensor.ac500_pack_percent3
+                    name: B300k
+                  - entity: sensor.vatrer_battery_battery
+                    name: Vatrer
+                min_y_axis: 0
+                fit_y_data: false
+                max_y_axis: 100
+                title: Battery SOC
+                hours_to_show: 24
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Bluetti Battery
+                  - entity: sensor.ac500_pack_percent2
+                    name: Battery Pack 2
+                    secondary_info: none
+                  - entity: sensor.ac500_pack_percent3
+                    name: Battery Pack 3
+                  - entity: sensor.vatrer_battery_battery
+                    name: Vatrer Battery
+            grid_options:
+              columns: full
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#solarinput'
+                button_type: name
+                card_layout: normal
+                width_desktop: 80%
+                close_on_click: true
+                show_header: false
+              - type: history-graph
+                show_names: false
+                entities:
+                  - entity: sensor.ac500_dc_input_power
+                    name: Solar Input
+                  - entity: sensor.ac500_ac_input_power
+                    name: Power Draw
+                  - entity: sensor.ac500_ac_output_power
+                    name: Inverter Output
+                min_y_axis: 0
+                hours_to_show: 4
+                fit_y_data: true
+                max_y_axis: 100
+                title: Energy Balance - AC & Solar
+              - type: entities
+                entities:
+                  - entity: sensor.solcast_pv_forecast_forecast_remaining_today
+                    name: Solar Remaining
+                    secondary_info: none
+                  - type: custom:template-entity-row
+                    name: Battery Left To Charge
+                    icon: mdi:battery
+                    state: >-
+                      {{ (21.1 - states('sensor.available_battery_kwh') | float)
+                      | round(2) }} kWh
+                  - entity: sensor.solcast_pv_forecast_forecast_tomorrow
+                    name: Solar Forecast Tomorrow
+                    secondary_info: last-changed
+                  - entity: sensor.solar_produced_today
+                    name: Solar Produced Today
+                  - entity: sensor.grid_used_today
+                    name: Grid Used Today
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#gridpowersummary'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    name: Today's Energy Usage
+                    tap_action:
+                      action: navigate
+                      navigation_path: /energy
+                    show_icon: false
+                    show_name: true
+                    style: |
+                      ha-card {
+                        background: none;
+                        box-shadow: none;
+                        padding: 0 16px;
+                        font-size: 20px;
+                        font-weight: bold;
+                        text-align: left;
+                      }
+                  - square: true
+                    type: grid
+                    cards:
+                      - type: gauge
+                        entity: sensor.daily_energy_cost
+                        severity:
+                          green: 0
+                          yellow: 1
+                          red: 2
+                        max: 3
+                        needle: true
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                      - type: gauge
+                        entity: sensor.ac500_total_battery_percent
+                        severity:
+                          green: 75
+                          yellow: 30
+                          red: 0
+                        name: Battery Percent
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                      - type: energy-self-sufficiency-gauge
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                      - type: gauge
+                        entity: number.remaining_runtime_until_end_of_peak
+                        severity:
+                          green: 2
+                          yellow: -2
+                          red: -10
+                        needle: true
+                        name: Runtime Buffer
+                        max: 10
+                        min: -10
+                        grid_options:
+                          columns: 6
+                          rows: auto
+                    columns: 2
+                  - type: entities
+                    entities:
+                      - entity: sensor.vuetonia_123_1min
+                        name: Grid Draw (last minute)
+                      - entity: sensor.peak_foo_usage
+                        name: Peak Usage
+                      - entity: sensor.mid_peak_foo_usage
+                        name: Mid-Peak Usage
+                      - entity: sensor.off_peak_foo_usage
+                        name: Off-Peak Usage
+                    show_header_toggle: false
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#tempsummary'
+                button_type: name
+                close_on_click: true
+                show_header: false
+                width_desktop: 80%
+              - type: custom:plotly-graph
+                entities:
+                  - entity: sensor.ambient_temp
+                    name: Amb
+                    line:
+                      width: 4
+                      shape: spline
+                  - entity: sensor.dining_room_current_temperature
+                    name: Indoor
+                    line:
+                      width: 4
+                      shape: spline
+                  - entity: sensor.ambient_vs_indoor_temp
+                    name: Delta
+                    line:
+                      width: 4
+                      shape: spline
+                hours_to_show: 24
+                refresh_interval: 10
+              - type: entities
+                entities:
+                  - entity: sensor.ambient_temp
+                    name: Ambient
+                  - entity: climate.midea_climate
+                    name: Dining Room AC (Set/Current)
+                  - entity: sensor.foo1_temperature_2
+                    name: foo1
+                  - entity: sensor.foo2_temperature_2
+                    name: foo2
+                  - entity: sensor.foo3_temperature_2
+                    name: foo3
+                  - entity: sensor.office_temperature_2
+                    name: Office
+                  - entity: sensor.server_room_temperature_2
+                    name: Laundry Room
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#vatrer'
+                button_type: name
+                show_header: false
+                background_update: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.vatrer_battery_battery
+                    name: Battery
+                  - entity: binary_sensor.vatrer_battery_charging
+                    name: Charging
+                  - entity: sensor.vatrer_battery_voltage
+                    name: Voltage
+                  - entity: sensor.vatrer_battery_stored_energy
+                    name: Stored energy
+                  - entity: sensor.vatrer_battery_current
+                    name: Current
+                  - entity: sensor.vatrer_battery_power
+                    name: Power
+                  - entity: sensor.vatrer_battery_temperature
+                    name: Temperature
+                title: Vatrer Batteries
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#ac500'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_ac_input_power
+                    name: AC Input Power
+                  - entity: sensor.ac500_dc_input_power
+                    name: DC Input Power
+                  - entity: sensor.ac500_dc_input_current1
+                    name: DC Input Current
+                  - entity: sensor.ac500_dc_input_voltage1
+                    name: DC Input Voltage
+                  - entity: sensor.ac500_ac_output_power
+                    name: AC Output Power
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Total Battery Percent
+                  - entity: sensor.ac500_pack_voltage2
+                    name: Battery Pack 2 Voltage
+                  - entity: sensor.ac500_pack_voltage3
+                    name: Battery Pack 3 Voltage
+                  - entity: select.ac500_ups_mode
+                  - entity: sensor.battery_charging_power
+                  - entity: sensor.battery_discharging_power
+                title: Inverter - AC500
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#powerstats'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.vuetonia_123_1min
+                    name: Grid Draw
+                  - entity: sensor.dr_ac_power_minute_average
+                    name: Dining Room AC
+                  - entity: sensor.foo1_br_ac_power_minute_average
+                    name: foo1 Bedroom AC
+                  - entity: sensor.stove_12_1min
+                    name: Stove
+                  - entity: sensor.server_power_minute_average
+                    name: Server
+                  - entity: sensor.vuetonia_11_1min
+                    name: Fridge
+                  - entity: sensor.freezer_washing_machine_5_1min
+                    name: Freezer / Washing Machine
+                  - entity: sensor.furnace_6_1min
+                    name: Furnace
+                  - entity: sensor.kitchen_13_1min
+                    name: Kitchen
+                  - entity: sensor.wifi_tv_office_8_1min
+                    name: WiFi / TV / Office
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#bluetti'
+                button_type: name
+                show_header: false
+                close_on_click: true
+              - type: entities
+                entities:
+                  - entity: sensor.ac500_total_battery_percent
+                    name: Bluetti Battery
+                  - entity: sensor.ac500_pack_percent2
+                    name: Battery Pack 2
+                    secondary_info: none
+                  - entity: sensor.ac500_pack_percent3
+                    name: Battery Pack 3
+                  - entity: sensor.vatrer_battery_battery
+                    name: Vatrer Battery
+                show_header_toggle: true
+                title: Bluetti Batteries
+    type: sections
+    max_columns: 3
+    icon: mdi:home
+    cards: []
+    path: home_alt
