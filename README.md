@@ -4,4 +4,5 @@ This is a collection of my Home Assistant works-in-progress
 
 The first commit is my primary dashboard that adapts whether it is on a mobile device or laptop.
 
-Next will be automations, scripts, helpers, and so on...
+I included some raw files, and some scripts that broke those files into smaller chunks (helpers)
+
