@@ -1,0 +1,528 @@
+- id: '1712031367060'
+  alias: Turn off AC When Heating
+  description: ''
+  triggers:
+  - value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''heating'')}}'
+    trigger: template
+  conditions: []
+  actions:
+  - metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id:
+      - climate.midea_climate
+    action: climate.set_hvac_mode
+    enabled: false
+  mode: single
+- id: '1712031429336'
+  alias: Turn off DR AC When Idle
+  description: ''
+  triggers:
+  - value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''idle'')}}'
+    trigger: template
+  conditions: []
+  actions:
+  - metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id:
+      - climate.midea_climate
+    action: climate.set_hvac_mode
+    enabled: true
+  mode: single
+- id: '1712031461302'
+  alias: Turn off DR AC when None
+  description: ''
+  triggers:
+  - value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      '''')}}'
+    trigger: template
+  conditions: []
+  actions:
+  - metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id:
+      - climate.midea_climate
+    action: climate.set_hvac_mode
+  mode: single
+- id: '1712031499415'
+  alias: Turn on AC When Cooling
+  description: ''
+  triggers:
+  - value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''cooling'')}}'
+    trigger: template
+  conditions: []
+  actions:
+  - action: climate.set_temperature
+    metadata: {}
+    data:
+      hvac_mode: cool
+      temperature: '{{ state_attr(''climate.dining_room_2'', ''target_temp_high'')
+        | float - 3 }}'
+    target:
+      entity_id: climate.midea_climate
+  - metadata: {}
+    data:
+      message: Thermostat called to cool, turning on AC
+      title: Notification
+    action: notify.mobile_app_phonetonia
+  mode: single
+- id: '1715297461355'
+  alias: Turn off DR AC if battery below 55%
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id:
+    - sensor.ac300_1_total_battery_percent_2
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+    below: 55
+  condition:
+  - condition: template
+    value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''cooling'')}}'
+    enabled: false
+  action:
+  - service: climate.set_hvac_mode
+    metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id: climate.midea_climate
+  - service: notify.mobile_app_phonetonia
+    metadata: {}
+    data:
+      message: Battery is below 55%, turning off Dining Room AC
+      title: Notification
+  mode: single
+- id: '1715300471733'
+  alias: Turn off all AC if battery below 35%
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.ac300_1_total_battery_percent_2
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+    below: 35
+    trigger: numeric_state
+  conditions:
+  - condition: template
+    value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''cooling'')}}'
+    enabled: false
+  actions:
+  - metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id:
+      - climate.midea_climate
+    action: climate.set_hvac_mode
+  - device_id: 234683feb74f0a9a08cbb190827fdfec
+    domain: climate
+    entity_id: d3f8af6973267fdedd9c6767214e1157
+    type: set_hvac_mode
+    hvac_mode: 'off'
+  - metadata: {}
+    data:
+      message: Battery is below 35%, turning off all AC
+      title: WARNING!
+    action: notify.mobile_app_phonetonia
+  mode: single
+- id: '1715819156488'
+  alias: Turn on furnace fan if DR AC turns on
+  description: If the furnace is idle
+  trigger:
+  - platform: device
+    device_id: 4066bcc1d28e7edc26e6f5cebe7b34d2
+    domain: climate
+    entity_id: 95eb37aec95ef02d5a4226fb594e52d9
+    type: hvac_mode_changed
+    to: cool
+  condition:
+  - condition: template
+    value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''idle'')}}'
+  action:
+  - service: climate.set_fan_mode
+    data:
+      fan_mode: 'on'
+    target:
+      entity_id: climate.dining_room_2
+  mode: single
+- id: '1715819809274'
+  alias: Disabled An hour before sunset, turn on AC if...
+  description: If Dan's room > 75 deg F
+  triggers:
+  - event: sunset
+    offset: -00:60:00
+    trigger: sun
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.dan_temperature_2
+    above: 75
+  - condition: numeric_state
+    entity_id: sensor.ac300_1_total_battery_percent_2
+    above: 80
+    enabled: false
+  actions:
+  - data:
+      message: Turning on AC in 5 minutes since there's enough battery
+      data:
+        timeout: 30
+        actions:
+        - action: Abort_Night_AC
+          title: Abort
+    action: notify.mobile_app_phonetonia
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+  - metadata: {}
+    data:
+      hvac_mode: cool
+    target:
+      entity_id: climate.151732605303264_climate
+    action: climate.set_hvac_mode
+  mode: single
+- id: '1720660090510'
+  alias: Shut down AC if overloading
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.ac300_1_ac_output_power_2
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+    above: 3000
+    trigger: numeric_state
+  conditions: []
+  actions:
+  - metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id:
+      - climate.midea_climate
+    action: climate.set_hvac_mode
+  - metadata: {}
+    data:
+      message: Inverter is overloading - shutting down AC!
+      title: ALERT!
+    action: notify.mobile_app_phonetonia
+  mode: single
+- id: '1720663133151'
+  alias: After Sunset by 2 hours, Turn off Dan's Room AC if...
+  description: If Dan's room < 70 deg F
+  triggers:
+  - event: sunset
+    offset: 02:00:00
+    trigger: sun
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.dan_temperature_2
+    below: 70
+  - condition: numeric_state
+    entity_id: sensor.ac300_1_total_battery_percent_2
+    above: 80
+    enabled: false
+  actions:
+  - metadata: {}
+    data:
+      hvac_mode: 'off'
+    target:
+      entity_id: climate.151732605303264_climate
+    action: climate.set_hvac_mode
+  mode: single
+- id: '1721188203380'
+  alias: An hour before sunset, turn on Dan's room AC if...
+  description: If Dan's room > 75 deg F
+  triggers:
+  - event: sunset
+    offset: -00:60:00
+    trigger: sun
+  conditions:
+  - condition: numeric_state
+    entity_id: sensor.dan_temperature_2
+    above: 75
+  - condition: numeric_state
+    entity_id: sensor.ac300_1_total_battery_percent_2
+    above: 80
+    enabled: false
+  actions:
+  - alias: Set up variables to make action events unique
+    variables:
+      action_yes: '{{ ''YES_'' ~ context.id }}'
+      action_no: '{{ ''NO_'' ~ context.id }}'
+  - alias: Send actionable notification
+    data:
+      message: Dan's Bedroom is warm, turn on AC?
+      data:
+        actions:
+        - action: '{{ action_yes }}'
+          title: 'Yes'
+        - action: '{{ action_no }}'
+          title: 'No'
+    action: notify.mobile_app_phonetonia
+  - wait_for_trigger:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ action_yes }}'
+      trigger: event
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ action_no }}'
+      trigger: event
+    continue_on_timeout: false
+  - alias: Do something in response to selecting an action
+    choose:
+    - alias: Yes action was selected
+      conditions:
+      - condition: template
+        value_template: '{{ wait.trigger.event.data.action == action_yes }}'
+      sequence:
+      - data:
+          message: Turning on Bedroom AC
+        action: notify.mobile_app_phonetonia
+      - metadata: {}
+        data:
+          hvac_mode: cool
+        target:
+          entity_id: climate.151732605303264_climate
+        action: climate.set_hvac_mode
+    - alias: No action was selected
+      conditions:
+      - condition: template
+        value_template: '{{ wait.trigger.event.data.action == action_no }}'
+      sequence:
+      - data:
+          message: The No action was selected
+        enabled: false
+        action: notify.mobile_app_phonetonia
+  mode: restart
+- id: '1721190158650'
+  alias: An hour before sunset, turn on Dining Room AC if...
+  description: If Dining room > 75 deg F
+  trigger:
+  - platform: sun
+    event: sunset
+    offset: -00:60:00
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.dining_room_temperature
+    above: 75
+  action:
+  - alias: Set up variables to make action events unique
+    variables:
+      action_yes: '{{ ''YES_'' ~ context.id }}'
+      action_no: '{{ ''NO_'' ~ context.id }}'
+  - alias: Send actionable notification
+    service: notify.mobile_app_phonetonia
+    data:
+      message: Dining Room is warm, turn on AC?
+      data:
+        actions:
+        - action: '{{ action_yes }}'
+          title: 'Yes'
+        - action: '{{ action_no }}'
+          title: 'No'
+  - wait_for_trigger:
+    - platform: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ action_yes }}'
+    - platform: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: '{{ action_no }}'
+    continue_on_timeout: false
+  - alias: Do something in response to selecting an action
+    choose:
+    - alias: Yes action was selected
+      conditions:
+      - condition: template
+        value_template: '{{ wait.trigger.event.data.action == action_yes }}'
+      sequence:
+      - service: notify.mobile_app_phonetonia
+        data:
+          message: Turning on Dining AC
+      - service: climate.set_hvac_mode
+        metadata: {}
+        data:
+          hvac_mode: cool
+        target:
+          entity_id: climate.midea_climate
+    - alias: No action was selected
+      conditions:
+      - condition: template
+        value_template: '{{ wait.trigger.event.data.action == action_no }}'
+      sequence:
+      - service: notify.mobile_app_phonetonia
+        data:
+          message: The No action was selected
+        enabled: false
+  mode: restart
+- id: '1749405511747'
+  alias: Turn Thermostat fan to Auto If DR AC turns off
+  description: ''
+  triggers:
+  - device_id: 4066bcc1d28e7edc26e6f5cebe7b34d2
+    domain: climate
+    entity_id: 95eb37aec95ef02d5a4226fb594e52d9
+    type: hvac_mode_changed
+    to: 'off'
+    trigger: device
+  conditions:
+  - condition: template
+    value_template: '{{ is_state_attr(''climate.dining_room_2'', ''hvac_action'',
+      ''idle'')}}'
+    enabled: false
+  actions:
+  - data:
+      fan_mode: auto
+    target:
+      entity_id: climate.dining_room_2
+    action: climate.set_fan_mode
+  mode: single
+- id: '1749418389077'
+  alias: "Adjust AC to 3\xC2\xB0 Below Thermostat Setpoint"
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - climate.dining_room_2
+    attribute: target_temp_high
+  conditions:
+  - condition: state
+    entity_id: climate.midea_climate
+    state: cool
+  actions:
+  - target:
+      entity_id: climate.midea_climate
+    data:
+      hvac_mode: cool
+      temperature: '{{ (state_attr(''climate.dining_room_2'', ''target_temp_high'')
+        | float - 3) | round(1) }}'
+    action: climate.set_temperature
+  mode: single
+- id: '1752780254733'
+  alias: Put Bedroom AC in Sleep after 10 PM if it's running
+  description: ''
+  triggers:
+  - trigger: time
+    at: '23:00:00'
+    enabled: true
+  - trigger: time
+    at: '22:00:00'
+    enabled: true
+  conditions:
+  - condition: device
+    device_id: 98f45862a22b4be4a5d556025bc897a2
+    domain: climate
+    entity_id: aa2031e2adcb4d80e49d0853f0f6e091
+    type: is_hvac_mode
+    hvac_mode: cool
+  actions:
+  - device_id: 98f45862a22b4be4a5d556025bc897a2
+    domain: climate
+    entity_id: aa2031e2adcb4d80e49d0853f0f6e091
+    type: set_preset_mode
+    preset_mode: sleep
+  mode: single
+- id: '1754770419746'
+  alias: Turn off Hallway Fan if Bedroom AC Turned Off
+  description: ''
+  triggers:
+  - device_id: 98f45862a22b4be4a5d556025bc897a2
+    domain: climate
+    entity_id: aa2031e2adcb4d80e49d0853f0f6e091
+    type: hvac_mode_changed
+    trigger: device
+    to: 'off'
+  conditions:
+  - condition: device
+    type: is_on
+    device_id: 2cd748a6c395137f23f9cecb977e87b5
+    entity_id: 2a915398e990612d965294106da913c6
+    domain: switch
+  actions:
+  - type: turn_off
+    device_id: 2cd748a6c395137f23f9cecb977e87b5
+    entity_id: 2a915398e990612d965294106da913c6
+    domain: switch
+  mode: single
+- id: '1756503469843'
+  alias: Turn on AC & Hallway Fan
+  description: ''
+  triggers:
+  - device_id: 1a9eec07201e57674901eff31f44a84e
+    domain: hubitat
+    type: pushed
+    subtype: '2'
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 2cd748a6c395137f23f9cecb977e87b5
+    entity_id: 2a915398e990612d965294106da913c6
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - action: climate.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.151732605303264_climate
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - device_id: 98f45862a22b4be4a5d556025bc897a2
+    domain: climate
+    entity_id: aa2031e2adcb4d80e49d0853f0f6e091
+    type: set_hvac_mode
+    hvac_mode: cool
+  mode: single
+- id: '1756503515303'
+  alias: Turn off AC & Hallway Fan
+  description: ''
+  triggers:
+  - device_id: 1a9eec07201e57674901eff31f44a84e
+    domain: hubitat
+    type: held
+    subtype: '2'
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 2cd748a6c395137f23f9cecb977e87b5
+    entity_id: 2a915398e990612d965294106da913c6
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.151732605303264_climate
+  mode: single

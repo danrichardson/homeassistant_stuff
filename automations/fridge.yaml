@@ -1,0 +1,32 @@
+- id: '1747173552082'
+  alias: Fridge About To Thaw
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.vuetonia_11_1min
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    above: 200
+  conditions: []
+  actions:
+  - action: notify.mobile_app_phonetonia
+    metadata: {}
+    data:
+      message: Fridge is Thawing! (600w)
+      title: Take Heed until {{ (now() + timedelta(minutes=14)).strftime('%-I:%M %p')
+        }}
+  - delay:
+      hours: 12
+      minutes: 13
+      seconds: 0
+      milliseconds: 0
+  - action: notify.mobile_app_phonetonia
+    metadata: {}
+    data:
+      message: Fridge is about to start thawing (600w!)
+      title: Take heed until {{ (now() + timedelta(minutes=16)).strftime('%-I:%M %p')
+        }}
+  mode: single
