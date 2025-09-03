@@ -1,0 +1,24 @@
+{
+  "created_at": "2025-05-28T20:53:31.297247+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JWCAQWH1W8R015TZXHF7QWPD",
+  "minor_version": 1,
+  "modified_at": "2025-05-29T09:37:44.398667+00:00",
+  "options": {
+    "name": "Daily Peak Energy Cost",
+    "state": "{% set fixed_daily = 15.29 / 30.44 %}\n{% set rate = 0.5185 %}\n{% set kwh = states('sensor.peak_foo_usage') | float(0) %}\n{% set is_weekend = now().isoweekday() in [6, 7] %}\n{% set fixed = 0 if is_weekend else fixed_daily * (4 / 24) %}\n{{ (fixed + (kwh * rate) ) | round(2) }}",
+    "state_class": "total",
+    "template_type": "sensor",
+    "unit_of_measurement": "$"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Daily Peak Energy Cost",
+  "unique_id": null,
+  "version": 1
+}

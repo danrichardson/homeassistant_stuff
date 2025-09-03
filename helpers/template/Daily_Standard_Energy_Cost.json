@@ -1,0 +1,24 @@
+{
+  "created_at": "2025-05-28T20:35:26.473285+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JWC9PS4948D0K8R5ZKP8HSV2",
+  "minor_version": 1,
+  "modified_at": "2025-05-29T09:34:36.638403+00:00",
+  "options": {
+    "name": "Daily Standard Energy Cost",
+    "state": "{% set off = states('sensor.daily_off_peak_energy_cost') | float(0) %}\n{% set mid = states('sensor.daily_mid_peak_energy_cost') | float(0) %}\n{% set peak = states('sensor.daily_peak_energy_cost') | float(0) %}\n{{ (off + mid + peak) | round(2) }}",
+    "state_class": "total",
+    "template_type": "sensor",
+    "unit_of_measurement": "$"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Daily Standard Energy Cost",
+  "unique_id": null,
+  "version": 1
+}

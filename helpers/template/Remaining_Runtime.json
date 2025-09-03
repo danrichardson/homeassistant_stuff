@@ -1,0 +1,27 @@
+{
+  "created_at": "2025-06-10T03:08:56.919711+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JXBWZY6QC4GYV5XNMCWHRQH2",
+  "minor_version": 1,
+  "modified_at": "2025-06-10T15:17:01.472937+00:00",
+  "options": {
+    "max": 100.0,
+    "min": 0.0,
+    "name": "Remaining Runtime",
+    "set_value": [],
+    "state": "{% set time_left = states('number.hours_until_end_of_peak') | float(0) %}\n{% set dc_in = states('sensor.ac500_dc_input_power') | float(0) %}\n{% set ac_out = states('sensor.ac500_ac_output_power') | float(0) %}\n{% set current_capacity = states('sensor.available_battery_kwh') | float(0) %}\n{% set delta = ac_out - dc_in %}\n\n{% if delta > 0 %}\n  {% set runtime = (current_capacity * 1000 / ( delta )) %}\n  {{ runtime | round(2) }}\n{% else %}\n  inf\n{% endif %}",
+    "step": 1.0,
+    "template_type": "number",
+    "unit_of_measurement": "h"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Remaining Runtime",
+  "unique_id": null,
+  "version": 1
+}

@@ -1,0 +1,25 @@
+{
+  "created_at": "2025-05-09T18:17:04.614783+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "integration",
+  "entry_id": "01JTV47RV6S7BPMHFM0GCX1BJ3",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:04.643722+00:00",
+  "options": {
+    "method": "left",
+    "name": "Power Usage Off-Peak Per Day",
+    "round": 1.0,
+    "source": "sensor.power_usage_off_peak",
+    "unit_prefix": "k",
+    "unit_time": "h"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Power Usage Off-Peak Per Day",
+  "unique_id": null,
+  "version": 1
+}

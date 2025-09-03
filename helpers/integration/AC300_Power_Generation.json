@@ -1,0 +1,24 @@
+{
+  "created_at": "2025-06-10T00:10:38.382531+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "integration",
+  "entry_id": "01JXBJSEDE5GGPFEYYFTXY4AX9",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:04.645574+00:00",
+  "options": {
+    "method": "trapezoidal",
+    "name": "AC300 Power Generation",
+    "source": "sensor.ac300_dc_input_power",
+    "unit_prefix": "k",
+    "unit_time": "h"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "AC300 Power Generation",
+  "unique_id": null,
+  "version": 1
+}

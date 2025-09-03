@@ -1,0 +1,25 @@
+{
+  "created_at": "2025-05-11T23:06:53.876118+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "integration",
+  "entry_id": "01JV0SKWHM1Y1KCJNW2WHZ66P6",
+  "minor_version": 2,
+  "modified_at": "2025-08-08T04:22:04.645138+00:00",
+  "options": {
+    "method": "left",
+    "name": "Mid-Peak Foo",
+    "round": 1.0,
+    "source": "sensor.mid_peak_power",
+    "unit_prefix": "k",
+    "unit_time": "h"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Mid-Peak Foo",
+  "unique_id": null,
+  "version": 1
+}

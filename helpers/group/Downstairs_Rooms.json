@@ -1,0 +1,27 @@
+{
+  "created_at": "2025-07-18T06:12:43.606716+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "group",
+  "entry_id": "01K0E2KREPNVQZB82KHGEKN779",
+  "minor_version": 1,
+  "modified_at": "2025-07-18T06:12:43.606720+00:00",
+  "options": {
+    "entities": [
+      "sensor.temp",
+      "sensor.dining_room_temperature"
+    ],
+    "group_type": "sensor",
+    "hide_members": false,
+    "name": "Downstairs Rooms",
+    "type": "max"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Downstairs Rooms",
+  "unique_id": null,
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "created_at": "2025-07-18T06:10:21.160829+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "group",
+  "entry_id": "01K0E2FDB8RV5T7SBG14WRPQ4V",
+  "minor_version": 1,
+  "modified_at": "2025-07-18T06:10:21.160831+00:00",
+  "options": {
+    "entities": [
+      "sensor.willa_temperature_2",
+      "sensor.zoe_temperature_2",
+      "sensor.dan_temperature_2"
+    ],
+    "group_type": "sensor",
+    "hide_members": false,
+    "name": "Upstairs Rooms",
+    "type": "max"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Upstairs Rooms",
+  "unique_id": null,
+  "version": 1
+}

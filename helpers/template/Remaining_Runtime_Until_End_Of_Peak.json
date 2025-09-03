@@ -1,0 +1,26 @@
+{
+  "created_at": "2025-06-10T03:25:28.590858+00:00",
+  "data": {},
+  "disabled_by": null,
+  "discovery_keys": {},
+  "domain": "template",
+  "entry_id": "01JXBXY6MEQJWQHWJHWGVW2F40",
+  "minor_version": 1,
+  "modified_at": "2025-06-10T15:24:26.652634+00:00",
+  "options": {
+    "max": 100.0,
+    "min": 0.0,
+    "name": "Remaining Runtime Until End Of Peak",
+    "set_value": [],
+    "state": "{% set raw_runtime_remaining = states('number.remaining_runtime') %}\n{% set runtime_remaining = (24 if raw_runtime_remaining in ['inf', 'unknown', 'unavailable'] else raw_runtime_remaining | float) %}\n{% set time_until_end_of_peak = states('number.hours_until_end_of_peak') | float(0) %}\n{% set current_capacity = states('sensor.available_battery_kwh') | float(0) %}\n{% set runtime_needed = (runtime_remaining - time_until_end_of_peak) | round(1) %}\n\n{% if runtime_remaining < 24 %}\n  {{ runtime_needed | round(2) }}\n{% else %}\n  {{ runtime_remaining | round(2) }}\n{% endif %}",
+    "step": 1.0,
+    "template_type": "number"
+  },
+  "pref_disable_new_entities": false,
+  "pref_disable_polling": false,
+  "source": "user",
+  "subentries": [],
+  "title": "Remaining Runtime Until End Of Peak",
+  "unique_id": null,
+  "version": 1
+}
