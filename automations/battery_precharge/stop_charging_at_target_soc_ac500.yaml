@@ -1,0 +1,22 @@
+# automation_stop_charging_at_target_soc_ac500.yaml
+- id: '1748729141590'
+  alias: Stop Charging at Target SOC AC500
+  triggers:
+    - entity_id: sensor.available_battery_kwh
+      trigger: state
+  conditions:
+    - condition: template
+      value_template: '{{ states("sensor.available_battery_kwh") | float(0) > (states("input_number.target_soc_kwh") | float(0) + 0.1) }}'
+    - condition: template
+      value_template: '{{ states("select.ac500_ups_mode") != "PV_PRIORITY" }}'
+  actions:
+    - data:
+        option: PV_PRIORITY
+      target:
+        entity_id: select.ac500_ups_mode
+      action: select.select_option
+    - data:
+        title: AC500 Charging Complete
+        message: SOC has reached the target level. Switched to PV_Priority mode.
+      action: notify.mobile_app_phonetonia
+  mode: single

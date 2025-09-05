@@ -1,0 +1,18 @@
+# automation_update_all_time_max_dc_input_voltage_ac500.yaml
+- id: '1748682156059'
+  alias: Update All Time High DC Input Voltage - AC500
+  triggers:
+    - entity_id:
+        - sensor.ac500_dc_input_voltage1
+      trigger: state
+  conditions:
+    - condition: template
+      value_template: '{{ states("sensor.ac500_dc_input_voltage1") | float > states("input_number.all_time_high_dc_input_voltage_ac500") | float }}'
+  actions:
+    - target:
+        entity_id:
+          - input_number.all_time_high_dc_input_voltage_ac500
+      data:
+        value: '{{ states("sensor.ac500_dc_input_voltage1") | float }}'
+      action: input_number.set_value
+  mode: single

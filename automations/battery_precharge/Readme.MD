@@ -1,0 +1,5 @@
+power_spiking_during_peak.yaml - this will detect how much grid draw is being used, and if it is sufficiently over the basely, a spoken text will be read on a Sonos speaker asking if you know what's happening. It's mildly annoying, but it does work
+
+3am_battery_precharge_ac500.yaml - this is triggerd by time (hourly from 3am - 6am) or by event (Solcast forecast changes), and only M-F. It runs the set_target_SOC.yaml script. Based on the results, it either does nothing, or sets the inverter to PV_Priority mode (stops charging batteries) or UPS mode (which charges batteries).
+
+stop_charging_at_target_soc_ac500.yaml - this looks at the Target SOC value, and is only run when the battery charge changes (+ or -). If the battery capacity > target_SOC by a small margin (.1 kWh), and the inverter is not in PV_Priority mode, it then sets the inverter to PV_Priority (stops charging) and sends a notification.

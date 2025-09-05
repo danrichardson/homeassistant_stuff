@@ -1,0 +1,65 @@
+alias: 3am Battery Precharge Calculation - AC500
+description: ""
+triggers:
+  - at: "03:00:00"
+    trigger: time
+  - at: "04:00:00"
+    trigger: time
+  - at: "05:00:00"
+    trigger: time
+  - at: "06:00:00"
+    trigger: time
+  - entity_id:
+      - sensor.solcast_pv_forecast_forecast_remaining_today
+    trigger: state
+conditions:
+  - condition: template
+    value_template: >-
+      {{ now().weekday() in [0, 1, 2, 3, 4] and now().hour < 16 and now().hour >
+      3 }}
+actions:
+  - data: {}
+    action: script.set_target_soc
+  - variables:
+      current_soc: "{{ states('sensor.available_battery_kwh') | float }}"
+      solar_forecast: >-
+        {{ states('sensor.solcast_pv_forecast_forecast_remaining_today') | float
+        }}
+      required_energy: "{{ states('input_number.required_energy_today') | float }}"
+      target_soc: "{{ states('input_number.target_soc_kwh') | float }}"
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ target_soc > current_soc }}"
+        sequence:
+          - data:
+              title: Battery Charging Plan
+              message: >
+                Charging required:  - SOC: {{ current_soc | round(1) }} kWh  -
+                Forecast: {{ solar_forecast | round(1) }} kWh - Required: {{
+                required_energy | round(1) }} kWh  - Target: {{ target_soc |
+                round(1) }} kWh
+            action: notify.mobile_app_phonetonia
+          - data:
+              option: STANDARD
+            target:
+              entity_id: select.ac500_ups_mode
+            action: select.select_option
+    default:
+      - sequence:
+          - data:
+              title: Battery Charging Plan
+              message: >
+                Charging NOT required:  - SOC: {{ current_soc | round(1) }} kWh 
+                - Forecast: {{ solar_forecast | round(1) }} kWh - Required: {{
+                required_energy | round(1) }} kWh - Target: {{ target_soc |
+                round(1) }} kWh - Triggered by {{ trigger.platform }} on {{
+                trigger.entity_id or 'time' }}
+            action: notify.mobile_app_phonetonia
+            enabled: false
+          - data:
+              option: PV_PRIORITY
+            target:
+              entity_id: select.ac500_ups_mode
+            action: select.select_option
+mode: single

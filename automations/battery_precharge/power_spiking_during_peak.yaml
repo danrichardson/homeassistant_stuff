@@ -1,0 +1,41 @@
+alias: Power Spiking During Peak
+description: ""
+triggers:
+  - trigger: numeric_state
+    entity_id:
+      - sensor.vuetonia_123_1min
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+    above: 1400
+conditions:
+  - condition: time
+    after: "17:00:00"
+    before: "21:00:00"
+    weekday:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+actions:
+  - action: notify.mobile_app_phonetonia
+    metadata: {}
+    data:
+      title: Power is spiking during Peak
+      message: Do you really want to do that?
+  - action: tts.speak
+    target:
+      entity_id: tts.piper
+    data:
+      cache: true
+      media_player_entity_id:
+        - media_player.kitchen_front
+        - media_player.entry
+        - media_player.dan_bedroom
+        - media_player.office
+        - media_player.pixel_tablet
+        - media_player.unnamed_room
+      message: Power is spiking during Peak. Do you really want to do that?
+mode: single
